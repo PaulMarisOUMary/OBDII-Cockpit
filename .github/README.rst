@@ -184,6 +184,8 @@ See what services take time to start:
 
     systemd-analyze critical-chain
 
+    systemctl list-unit-files --state=enabled
+
 .. code-block:: bash
     sudo systemctl disable NetworkManager-wait-online.service
 
