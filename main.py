@@ -1,37 +1,15 @@
-from logging import DEBUG, INFO, getLogger
+from logging import getLogger
 from logging.handlers import RotatingFileHandler
 
-from pygame import MOUSEBUTTONDOWN, display, font, init, mouse, quit, time, FULLSCREEN, QUIT
+from pygame import MOUSEBUTTONDOWN, Surface, display, font, init, mouse, quit, time, transform, FULLSCREEN, QUIT
 from pygame.event import get
 from threading import Event, Lock, Thread
 
-from obdii import Connection, at_commands, commands
+from obdii import Connection, at_commands
 
+from config import DEFAULT_FETCH_COMMANDS, FULLSCREEN_MODE, HEIGHT, LOG_LEVEL, ROTATED_BY_90, SERIAL_PORT, WIDTH
 from polling import background_fetch
 
-"""
-On device replace the following:
-- DEFAULT_SERIAL_PORT = "/dev/ttyUSB0"
-- screen = display.set_mode((WIDTH, HEIGHT), FULLSCREEN)
-"""
-
-
-DEFAULT_SERIAL_PORT = "COM5" # "/dev/ttyUSB0"
-
-DEFAULT_FETCH_COMMANDS = {
-    commands.VEHICLE_SPEED.name,
-    commands.ENGINE_SPEED.name,
-    commands.ENGINE_LOAD.name,
-
-    # commands.ENGINE_OIL_TEMP.name,
-    commands.ENGINE_COOLANT_TEMP.name,
-    # commands.INTAKE_AIR_TEMP.name,
-
-    # commands.BAROMETRIC_PRESSURE.name,
-    # commands.INTAKE_PRESSURE.name,
-}
-
-WIDTH, HEIGHT = 1280, 400
 
 storage = dict.fromkeys(DEFAULT_FETCH_COMMANDS, None)
 storage_lock = Lock()
@@ -46,9 +24,8 @@ file_handler = RotatingFileHandler(
 )
 obdii_logger = getLogger("obdii")
 
-obd = Connection(DEFAULT_SERIAL_PORT, 
-                # log_level=DEBUG,
-                log_level=INFO,
+obd = Connection(SERIAL_PORT,
+                log_level=LOG_LEVEL,
                 log_handler=file_handler,
                 early_return=True,
                 auto_connect=False,
@@ -102,7 +79,10 @@ def reconnect() -> None:
 if __name__ == "__main__":
     init()
     font.init()
-    screen = display.set_mode((WIDTH, HEIGHT), ) # display.set_mode((WIDTH, HEIGHT), FULLSCREEN)
+    screen = display.set_mode((WIDTH, HEIGHT), FULLSCREEN) if FULLSCREEN_MODE else display.set_mode((WIDTH, HEIGHT))
+
+    offscreen = Surface((WIDTH, HEIGHT))
+
     display.set_caption("OBDII Dashboard")
     mouse.set_visible(False)
     clock = time.Clock()
@@ -122,8 +102,17 @@ if __name__ == "__main__":
             with storage_lock:
                 snapshot = storage.copy()
 
-            draw_dashboard(screen, snapshot)
-            clock.tick(22) # Change to release CPU usage
+            draw_dashboard(offscreen, snapshot)
+
+            if ROTATED_BY_90:
+                rotated = transform.rotate(offscreen, 90)
+                screen.blit(rotated, (0, 0))
+            else:
+                screen.blit(offscreen, (0, 0))
+
+            display.flip()
+
+            clock.tick(30) # Change to release CPU usage
             # import pygame
             # pygame.image.save(screen, "dashboard.png")
             # break

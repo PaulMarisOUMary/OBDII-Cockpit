@@ -1,4 +1,3 @@
-from threading import Lock
 from typing import Any, Dict
 import pygame
 
@@ -147,5 +146,3 @@ def draw_dashboard(screen: pygame.Surface, storage: Dict[str, Any]) -> None:
 
     draw_speed_text(screen, rpm, big_font, RPM_POS, 4)
     screen.blit(label_rpm, RPM_TEXT_POS)
-
-    pygame.display.flip()
