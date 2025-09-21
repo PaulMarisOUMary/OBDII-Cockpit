@@ -1,3 +1,4 @@
+numpy
 pygame
 py-obdii
-ELM327-emulator
+# ELM327-emulator

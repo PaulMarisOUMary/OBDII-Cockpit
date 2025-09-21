@@ -31,7 +31,9 @@ DEFAULT_FETCH_COMMANDS = {
 
 if SYSTEM == "Windows":
     SERIAL_PORT = "COM9"
+    ROTATED_BY_90 = False
     FULLSCREEN_MODE = False
+    LOG_LEVEL = DEBUG
 
 elif SYSTEM == "Linux":
     environ["SDL_VIDEODRIVER"] = "KMSDRM"
