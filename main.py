@@ -2,7 +2,8 @@ from logging import getLogger
 from logging.handlers import RotatingFileHandler
 
 from config import DEFAULT_FETCH_COMMANDS, FULLSCREEN_MODE, HEIGHT, LOG_LEVEL, ROTATED_BY_90, SERIAL_PORT, WIDTH
-from blue_light import apply_blue_filter, get_strength_by_time
+
+from blue_filter import BlueFilter
 from connection import ConnectionManager
 from storage import StorageUpdater
 
@@ -22,6 +23,8 @@ def main() -> None:
         FULLSCREEN if FULLSCREEN_MODE else 0
     )
     off_screen = Surface((WIDTH, HEIGHT))
+
+    blue_filter = BlueFilter(0.5)
 
     clock = time.Clock()
 
@@ -76,14 +79,14 @@ def main() -> None:
             else:
                 screen.blit(off_screen, (0, 0))
 
-            apply_blue_filter(screen, 1)
+            blue_filter.apply(screen)
 
             display.flip()
 
             clock.tick(30)
     except KeyboardInterrupt: ...
     finally:
-        conn_manager.polling_stop.set()
+        conn_manager.stop()
         conn_manager.connection.close()
         quit()
 
