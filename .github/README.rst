@@ -178,6 +178,7 @@ Optimize Boot
 See what services take time to start:
 
 .. code-block:: bash
+
     systemd-analyze time
 
     systemd-analyze blame
@@ -187,6 +188,7 @@ See what services take time to start:
     systemctl list-unit-files --state=enabled
 
 .. code-block:: bash
+
     sudo systemctl disable NetworkManager-wait-online.service
 
     sudo systemctl disable bluetooth.service
