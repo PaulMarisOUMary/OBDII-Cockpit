@@ -57,7 +57,9 @@ def main() -> None:
     conn_manager = ConnectionManager(conn, storage_updater, _logger)
 
     # Dodge font not initialized error
-    from rendering import draw_dashboard
+    from rendering import Dashboard
+
+    dashboard = Dashboard()
 
     try:
         while True:
@@ -71,7 +73,7 @@ def main() -> None:
 
             snapshot = storage_updater.copy()
 
-            draw_dashboard(off_screen, snapshot)
+            dashboard.draw(off_screen, snapshot)
 
             if ROTATED_BY_90:
                 rotated = transform.rotate(off_screen, 90)
@@ -84,6 +86,10 @@ def main() -> None:
             display.flip()
 
             clock.tick(30)
+
+            # import pygame
+            # pygame.image.save(screen, "dashboard.png")
+            # break
     except KeyboardInterrupt: ...
     finally:
         conn_manager.stop()
