@@ -1,4 +1,4 @@
-from typing import Callable, List, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from pygame import Surface
 
@@ -8,7 +8,7 @@ class Gauge:
         image: Surface, 
         position: Tuple[int, int],
         max_value: int,
-        ratio_fn: Callable[[int], float] = None,
+        ratio_fn: Optional[Callable[[int], float]] = None,
     ):
         self.image = image
         self.position = position

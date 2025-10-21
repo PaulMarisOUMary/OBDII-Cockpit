@@ -1,3 +1,4 @@
+from typing import Optional
 from pygame import Surface, surfarray
 from datetime import datetime
 from numpy import uint8
@@ -9,7 +10,7 @@ class BlueFilter:
 
         self.current_strength = 0.0
 
-    def apply(self, screen: Surface, target_strength: float = None, virtual_hour: float = None) -> None:
+    def apply(self, screen: Surface, target_strength: Optional[float] = None, virtual_hour: Optional[float] = None) -> None:
         target_strength = target_strength or self.strength_by_time(virtual_hour)
 
         delta = target_strength - self.current_strength
@@ -26,8 +27,8 @@ class BlueFilter:
         arr[..., 1] = (arr[..., 1] * green_factor).astype(uint8)
         arr[..., 2] = (arr[..., 2] * blue_factor).astype(uint8)
         del arr
-    
-    def strength_by_time(self, virtual_hour: float = None) -> float:
+
+    def strength_by_time(self, virtual_hour: Optional[float] = None) -> float:
         now = datetime.now()
         hour = virtual_hour or (now.hour + now.minute / 60)
 

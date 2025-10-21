@@ -1,17 +1,17 @@
 from typing import Dict, Tuple
 
-from pygame import Color, Surface
+from pygame import Surface
 from pygame.font import Font
 
 
 class Digit:
-    _digit_cache: Dict[Tuple[Font, Color], Tuple[Surface]] = {}
+    _digit_cache: Dict[Tuple[Font, Tuple[int, int, int]], Tuple[Surface, ...]] = {}
 
     def __init__(self,
         font: Font,
         position: Tuple[int, int],
         n_digits: int = 3,
-        color: Color = Color(255, 255, 255),
+        color: Tuple[int, int, int] = (255, 255, 255),
         spacing: int = 0,
     ):
         self.font = font

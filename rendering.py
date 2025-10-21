@@ -45,6 +45,8 @@ class Dashboard:
     MAX_OIL = 300
 
     def __init__(self):
+        color_white = (255, 255, 255)
+
         self.big_font = Font(self.FONT_PATHS["big"], 80)
         self.small_font = Font(self.FONT_PATHS["small"], 20)
 
@@ -54,8 +56,8 @@ class Dashboard:
         self.left_group_bar = load_scale_image(self.IMG_PATHS["left_group_bar"], self.SIZES["left_group"])
         self.right_group_bar = flip(self.left_group_bar.copy(), True, False)
 
-        self.label_kmh = render_text(self.small_font, "km/h", (255, 255, 255))
-        self.label_rpm = render_text(self.small_font, "RPM", (255, 255, 255))
+        self.label_kmh = render_text(self.small_font, "km/h", color_white)
+        self.label_rpm = render_text(self.small_font, "RPM", color_white)
 
         self.speed_gauge = Gauge(self.left_bar, self.LEFT_BAR_POS, self.MAX_SPEED)
         rpm_ratio_fn = partial(
@@ -70,8 +72,8 @@ class Dashboard:
         self.coolant_gauge = Gauge(self.left_group_bar, self.LEFT_GROUP_BAR_POS_BIS, self.MAX_COOLANT)
         self.load_gauge = Gauge(self.right_group_bar, self.RIGHT_GROUP_BAR_POS, self.MAX_LOAD)
 
-        self.speed_digit = Digit(self.big_font, self.SPEED_POS, 3, (255, 255, 255), -5)
-        self.rpm_digit = Digit(self.big_font, self.RPM_POS, 4, (255, 255, 255), -5)
+        self.speed_digit = Digit(self.big_font, self.SPEED_POS, 3, color_white, -5)
+        self.rpm_digit = Digit(self.big_font, self.RPM_POS, 4, color_white, -5)
 
     def draw(self, screen: Surface, storage: Dict[str, Any]):
         """Render the dashboard."""

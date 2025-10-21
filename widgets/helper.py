@@ -1,11 +1,11 @@
 from typing import Any, Tuple
 
-from pygame import Color, Surface
+from pygame import Surface
 from pygame.font import Font
 from pygame.image import load
 from pygame.transform import scale
 
-def render_text(font: Font, text: str, color: Color) -> Surface:
+def render_text(font: Font, text: str, color: Tuple[int, int, int]) -> Surface:
     return font.render(text, True, color)
 
 def load_scale_image(image_path: str, size: Tuple[int, int]) -> Surface:
