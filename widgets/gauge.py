@@ -19,9 +19,15 @@ class Gauge:
 
         self.ratio_fn = ratio_fn or (lambda value: max(0.0, min(1.0, value / self.max_value)))
 
+        self._prev_value = None
+        self._prev_surface = None
 
     def draw(self, screen: Surface, value: int = 0) -> None:
         value = max(0, min(value, self.max_value))
+
+        if self._prev_value == value and self._prev_surface is not None:
+            screen.blit(self._prev_surface, (self.position[0], self.position[1] + self.height - self._prev_surface.get_height()))
+            return
 
         ratio = self.ratio_fn(value)
         ratio = max(0.0, min(1.0, ratio))
@@ -32,6 +38,8 @@ class Gauge:
             cropped = self.image.subsurface(
                 (0, self.height - fill_height, self.width, fill_height)
             )
+            self._prev_surface = cropped.copy()
+            self._prev_value = value
             screen.blit(cropped, (self.position[0], self.position[1] + self.height - fill_height))
     
     @staticmethod

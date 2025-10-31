@@ -5,6 +5,7 @@ from pygame import Surface
 from pygame.font import Font
 from pygame.transform import flip
 
+from config import WIDTH, HEIGHT
 from widgets.digit import Digit
 from widgets.gauge import Gauge
 from widgets.helper import load_scale_image, render_text, safe_int
@@ -59,6 +60,11 @@ class Dashboard:
         self.label_kmh = render_text(self.small_font, "km/h", color_white)
         self.label_rpm = render_text(self.small_font, "RPM", color_white)
 
+        self._bg_cache = Surface((WIDTH, HEIGHT))
+        self._bg_cache.blit(self.dashboard, (0, 0))
+        self._bg_cache.blit(self.label_kmh, self.KMH_POS)
+        self._bg_cache.blit(self.label_rpm, self.RPM_TEXT_POS)
+
         self.speed_gauge = Gauge(self.left_bar, self.LEFT_BAR_POS, self.MAX_SPEED)
         rpm_ratio_fn = partial(
             Gauge.gauge_ratio,
@@ -90,7 +96,7 @@ class Dashboard:
         # if rpm > 1500 and boost_kpa > 15: 
         #     print("TURRBOOOOO")
 
-        screen.blit(self.dashboard, (0, 0))
+        screen.blit(self._bg_cache, (0, 0))
 
         # self.oil_gauge.draw(screen, oil)
         self.coolant_gauge.draw(screen, coolant)
@@ -99,7 +105,4 @@ class Dashboard:
         self.rpm_gauge.draw(screen, rpm)
 
         self.speed_digit.draw(screen, speed)
-        screen.blit(self.label_kmh, self.KMH_POS)
-
         self.rpm_digit.draw(screen, rpm)
-        screen.blit(self.label_rpm, self.RPM_TEXT_POS)
