@@ -15,7 +15,7 @@ class BlueFilter:
         self._channel_scales: Optional[Tuple[float, float, float]] = None
 
     def apply(self, screen: Surface, target_strength: Optional[float] = None, virtual_hour: Optional[float] = None) -> None:
-        target_strength = self.strength_by_time(virtual_hour) if target_strength is None else target_strength
+        target_strength = target_strength or self.strength_by_time(virtual_hour)
 
         self.current_strength += (target_strength - self.current_strength) * self.fade_speed
         self.current_strength = max(0.0, min(self.current_strength, self.max_strength))
