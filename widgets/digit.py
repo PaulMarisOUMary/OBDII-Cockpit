@@ -20,6 +20,8 @@ class Digit:
         self.color = color
         self.spacing = spacing
 
+        self._ordzero = ord('0')
+
         key = (self.font, self.color)
         if key not in self._digit_cache:
             self._digit_cache[key] = tuple(self.font.render(str(i), True, self.color) for i in range(10))
@@ -29,7 +31,11 @@ class Digit:
 
     def draw(self, screen: Surface, value: int) -> None:
         text = f"{value:0{self.n_digits}d}"
-        for i, digit in enumerate(text):
-            surf = self._cache[int(digit)]
-            x = self.position[0] + i * (self._max_width + self.spacing) + (self._max_width - surf.get_width())
-            screen.blit(surf, (x, self.position[1]))
+        pos_x = self.position[0]
+        pos_y = self.position[1]
+        width_step = self._max_width + self.spacing
+        
+        for i in range(len(text)):
+            surf = self._cache[ord(text[i]) - self._ordzero]
+            x = pos_x + i * width_step + (self._max_width - surf.get_width())
+            screen.blit(surf, (x, pos_y))

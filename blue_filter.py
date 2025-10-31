@@ -1,7 +1,9 @@
-from typing import Optional
-from pygame import Surface, surfarray
 from datetime import datetime
-from numpy import uint8, clip
+from math import isclose
+from typing import Optional, Tuple
+
+from pygame import Surface, surfarray
+from numpy import multiply
 
 class BlueFilter:
     def __init__(self, max_strength: float = 0.5, fade_speed: float = 0.05):
@@ -10,28 +12,35 @@ class BlueFilter:
 
         self.current_strength = 0.0
         self._last_strength = -1.0
+        self._channel_scales: Optional[Tuple[float, float, float]] = None
 
     def apply(self, screen: Surface, target_strength: Optional[float] = None, virtual_hour: Optional[float] = None) -> None:
-        target_strength = target_strength or self.strength_by_time(virtual_hour)
+        target_strength = self.strength_by_time(virtual_hour) if target_strength is None else target_strength
 
-        delta = target_strength - self.current_strength
-        self.current_strength += delta * self.fade_speed
-
+        self.current_strength += (target_strength - self.current_strength) * self.fade_speed
         self.current_strength = max(0.0, min(self.current_strength, self.max_strength))
 
-        if abs(self.current_strength - self._last_strength) < 0.001:
+        if not isclose(self.current_strength, self._last_strength, abs_tol=0.001):
+            self._last_strength = self.current_strength
+            if self.current_strength <= 0.001:
+                self._channel_scales = None
+            else:
+                self._channel_scales = (
+                    1.0,
+                    1.0 - self.current_strength * 0.5,
+                    1.0 - self.current_strength,
+                )
+
+        factors = self._channel_scales
+        if factors is None:
             return
-            
-        self._last_strength = self.current_strength
 
-        blue_factor = 1 - self.current_strength
-        green_factor = 1 - self.current_strength * 0.5
-        red_factor = 1
-
+        red_scale, green_scale, blue_scale = factors
         arr = surfarray.pixels3d(screen)
-        arr[..., 0] = clip(arr[..., 0] * red_factor, 0, 255).astype(uint8)
-        arr[..., 1] = clip(arr[..., 1] * green_factor, 0, 255).astype(uint8)
-        arr[..., 2] = clip(arr[..., 2] * blue_factor, 0, 255).astype(uint8)
+        multiply(arr[..., 0], red_scale, out=arr[..., 0], casting="unsafe")
+        multiply(arr[..., 1], green_scale, out=arr[..., 1], casting="unsafe")
+        multiply(arr[..., 2], blue_scale, out=arr[..., 2], casting="unsafe")
+
         del arr
 
     def strength_by_time(self, virtual_hour: Optional[float] = None) -> float:
