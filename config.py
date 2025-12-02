@@ -6,6 +6,8 @@ from obdii import commands
 
 SYSTEM = system()
 
+TARGET_FPS = 60
+
 WIDTH, HEIGHT = 1280, 400
 FULLSCREEN_MODE = True
 ROTATED_BY_90 = True
@@ -30,7 +32,7 @@ DEFAULT_FETCH_COMMANDS = {
 }
 
 if SYSTEM == "Windows":
-    SERIAL_PORT = "COM9"
+    SERIAL_PORT = "COM10"
     ROTATED_BY_90 = False
     FULLSCREEN_MODE = False
     LOG_LEVEL = DEBUG

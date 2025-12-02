@@ -1,7 +1,7 @@
 from logging import getLogger
 from logging.handlers import RotatingFileHandler
 
-from config import DEFAULT_FETCH_COMMANDS, FULLSCREEN_MODE, HEIGHT, LOG_LEVEL, ROTATED_BY_90, SERIAL_PORT, WIDTH
+from config import DEFAULT_FETCH_COMMANDS, FULLSCREEN_MODE, HEIGHT, LOG_LEVEL, ROTATED_BY_90, SERIAL_PORT, TARGET_FPS, WIDTH
 
 from blue_filter import BlueFilter
 from connection import ConnectionManager
@@ -90,7 +90,7 @@ def main() -> None:
 
             display.flip()
 
-            clock.tick(60)
+            clock.tick(TARGET_FPS)
 
             # import pygame
             # pygame.image.save(screen, "dashboard.png")
