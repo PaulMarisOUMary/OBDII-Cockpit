@@ -53,7 +53,7 @@ def main() -> None:
         ]
     )
 
-    storage_updater = StorageUpdater(dict.fromkeys(DEFAULT_FETCH_COMMANDS, None))
+    storage_updater = StorageUpdater(dict.fromkeys(DEFAULT_FETCH_COMMANDS.keys(), None))
     conn_manager = ConnectionManager(conn, storage_updater, _logger)
 
     # Dodge font not initialized error
@@ -66,6 +66,8 @@ def main() -> None:
 
     try:
         while True:
+            dt = clock.get_time() / 1000.0
+
             for event in get():
                 if event.type == QUIT:
                     raise KeyboardInterrupt
@@ -76,7 +78,7 @@ def main() -> None:
 
             snapshot = storage_updater.copy()
 
-            dashboard.draw(off_screen, snapshot)
+            dashboard.draw(off_screen, snapshot, dt)
 
             if needs_rotation:
                 if rotated_cache is None or rotated_cache.get_size() != (HEIGHT, WIDTH):

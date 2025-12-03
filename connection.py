@@ -4,6 +4,8 @@ from threading import Event, Thread
 from obdii import Connection, commands
 from obdii.errors import ResponseBaseError
 
+from advanced_logic import PriorityPollingManager
+from config import DEFAULT_FETCH_COMMANDS
 from storage import StorageUpdater
 
 
@@ -20,6 +22,10 @@ class ConnectionManager:
         self.polling_error = Event()
 
         self.fetch_thread = None
+
+        self.scheduler = PriorityPollingManager()
+        for key, value in DEFAULT_FETCH_COMMANDS.items():
+            self.scheduler.register(key, value)
 
     def start(self) -> None:
         if self._running:
@@ -61,7 +67,9 @@ class ConnectionManager:
 
     def background_fetch(self) -> None:
         while self._running and not self.polling_stop.is_set():
-            for command_name in tuple(self.storage_updater.storage.keys()):
+            commands_to_fetch = self.scheduler.get_commands_for_cycle()
+
+            for command_name in commands_to_fetch:
                 try:
                     response = self.connection.query(commands[command_name])
                     self.storage_updater.update_single(command_name, response.value)
