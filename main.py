@@ -1,7 +1,7 @@
 from logging import getLogger
 from logging.handlers import RotatingFileHandler
 
-from config import DEFAULT_FETCH_COMMANDS, FULLSCREEN_MODE, HEIGHT, LOG_LEVEL, ROTATED_BY_90, SERIAL_PORT, TARGET_FPS, WIDTH
+from config import DEFAULT_COMMANDS, FULLSCREEN_MODE, HEIGHT, LOG_LEVEL, ROTATED_BY_90, SERIAL_PORT, TARGET_FPS, WIDTH
 
 from blue_filter import BlueFilter
 from connection import ConnectionManager
@@ -53,7 +53,7 @@ def main() -> None:
         ]
     )
 
-    storage_updater = StorageUpdater(dict.fromkeys(DEFAULT_FETCH_COMMANDS, None))
+    storage_updater = StorageUpdater(dict.fromkeys(DEFAULT_COMMANDS, None))
     conn_manager = ConnectionManager(conn, storage_updater, _logger)
 
     # Dodge font not initialized error

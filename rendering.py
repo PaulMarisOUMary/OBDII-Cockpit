@@ -1,11 +1,12 @@
 from functools import partial
-from typing import Any, Dict
 
+from obdii import commands
 from pygame import Surface
 from pygame.font import Font
 from pygame.transform import flip
 
 from config import WIDTH, HEIGHT
+from storage import STORAGE_SIGNATURE
 from widgets.digit import Digit
 from widgets.gauge import Gauge
 from widgets.helper import load_scale_image, render_text, safe_int
@@ -81,12 +82,12 @@ class Dashboard:
         self.speed_digit = Digit(self.big_font, self.SPEED_POS, 3, color_white, -5)
         self.rpm_digit = Digit(self.big_font, self.RPM_POS, 4, color_white, -5)
 
-    def draw(self, screen: Surface, storage: Dict[str, Any]):
+    def draw(self, screen: Surface, storage: STORAGE_SIGNATURE, dt: float) -> None:
         """Render the dashboard."""
-        speed = safe_int(storage.get("VEHICLE_SPEED", 0))
-        rpm = safe_int(storage.get("ENGINE_SPEED", 0))
-        load = safe_int(storage.get("ENGINE_LOAD", 0))
-        coolant = safe_int(storage.get("ENGINE_COOLANT_TEMP", 0))
+        speed = safe_int(storage.get(commands["VEHICLE_SPEED"], 0))
+        rpm = safe_int(storage.get(commands["ENGINE_SPEED"], 0))
+        load = safe_int(storage.get(commands["ENGINE_LOAD"], 0))
+        coolant = safe_int(storage.get(commands["ENGINE_COOLANT_TEMP"], 0))
 
         # oil = safe_int(storage.get("ENGINE_OIL_TEMP", 0))
         # in_press = safe_int(storage.get("INTAKE_PRESSURE", 0))

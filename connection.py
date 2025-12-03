@@ -1,9 +1,11 @@
 from logging import Logger
 from threading import Event, Thread
 
-from obdii import Connection, commands
+from obdii import Connection
 from obdii.errors import ResponseBaseError
 
+from config import DEFAULT_COMMANDS
+from polling import PollingManager
 from storage import StorageUpdater
 
 
@@ -20,6 +22,10 @@ class ConnectionManager:
         self.polling_error = Event()
 
         self.fetch_thread = None
+
+        self.polling_manager = PollingManager()
+        for key, value in DEFAULT_COMMANDS.items():
+            self.polling_manager.register(key, value)
 
     def start(self) -> None:
         if self._running:
@@ -60,14 +66,21 @@ class ConnectionManager:
         self.start()
 
     def background_fetch(self) -> None:
+        # _cache = {}
         while self._running and not self.polling_stop.is_set():
-            for command_name in tuple(self.storage_updater.storage.keys()):
+            to_fetch = self.polling_manager.get_cycle()
+            for command in to_fetch:
                 try:
-                    response = self.connection.query(commands[command_name])
-                    self.storage_updater.update_single(command_name, response.value)
+                    response = self.connection.query(command)
+                    value = response.value
+                    if value:
+                        # _cache[command] = value
+                        self.storage_updater.update_single(command, value)
+                    else:
+                        self.logger.warning(f"No data for command: {command}; value: {value}")
 
                 except KeyError:
-                    self.logger.warning(f"Unknown command: {command_name}")
+                    self.logger.warning(f"Unknown command: {command}")
 
                 except ResponseBaseError as e:
                     self.logger.warning(f"ResponseError {str(e)}")
