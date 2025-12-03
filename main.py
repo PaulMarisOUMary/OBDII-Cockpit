@@ -66,6 +66,8 @@ def main() -> None:
 
     try:
         while True:
+            dt = clock.tick(TARGET_FPS)
+
             for event in get():
                 if event.type == QUIT:
                     raise KeyboardInterrupt
@@ -76,7 +78,7 @@ def main() -> None:
 
             snapshot = storage_updater.copy()
 
-            dashboard.draw(off_screen, snapshot)
+            dashboard.draw(off_screen, snapshot, dt)
 
             if needs_rotation:
                 if rotated_cache is None or rotated_cache.get_size() != (HEIGHT, WIDTH):
