@@ -1,5 +1,4 @@
 from math import sin
-import random
 
 
 class Simulator:
@@ -115,17 +114,4 @@ class Simulator:
                 self.state = "IDLE"
                 self.timer = 0
                 
-        result = {"ENGINE_SPEED": self.rpm, "VEHICLE_SPEED": self.speed}
-
-        # --- FAULT INJECTION ---
-        # 1% chance to return 0 values (simulating bad read interpreted as 0)
-        if random.random() < 0.5:
-             result["ENGINE_SPEED"] = 0
-             result["VEHICLE_SPEED"] = 0
-        
-        # 1% chance to return None (simulating missing data)
-        elif random.random() < 0.5:
-             result["ENGINE_SPEED"] = None
-             result["VEHICLE_SPEED"] = None
-
-        return result
+        return {"ENGINE_SPEED": self.rpm, "VEHICLE_SPEED": self.speed}

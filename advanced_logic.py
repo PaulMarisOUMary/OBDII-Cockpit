@@ -32,27 +32,19 @@ class Interpolator:
 
 
 class DeadReckoningPredictor:
-    def __init__(self, max_prediction_time: float = 0.5, min_val: float = 0.0, max_val: float = 10000.0):
+    def __init__(self, max_prediction_time: float = 0.5):
         self.last_value = 0.0
         self.last_timestamp = time.time()
         self.velocity = 0.0  # Unités par seconde
         self.max_prediction_time = max_prediction_time # Ne pas prédire trop loin
-        self.min_val = min_val
-        self.max_val = max_val
 
     def push_update(self, new_value: float):
         now = time.time()
         dt = now - self.last_timestamp
         
-        if dt > 0.001: # Avoid division by zero or tiny dt
+        if dt > 0:
             # Calcul de la vélocité instantanée
             current_velocity = (new_value - self.last_value) / dt
-            
-            # Cap velocity to avoid explosion (e.g. max 5000 units/sec change)
-            # This is arbitrary but safe for RPM/Speed
-            if abs(current_velocity) > 20000:
-                current_velocity = 0
-
             # Lissage de la vélocité pour éviter les sauts brusques
             self.velocity = (self.velocity * 0.5) + (current_velocity * 0.5)
             
@@ -69,13 +61,6 @@ class DeadReckoningPredictor:
             
         # Projection linéaire: x = x0 + v*t
         predicted = self.last_value + (self.velocity * time_delta)
-        
-        # Hard clamp
-        if predicted < self.min_val:
-            predicted = self.min_val
-        if predicted > self.max_val:
-            predicted = self.max_val
-            
         return predicted
 
 
@@ -118,12 +103,10 @@ class PriorityPollingManager:
 
 
 class SpringPhysics:
-    def __init__(self, frequency: float = 2.5, damping: float = 0.6, initial_value: float = 0.0, min_val: float = 0.0, max_val: float = 10000.0):
+    def __init__(self, frequency: float = 2.5, damping: float = 0.6, initial_value: float = 0.0):
         self.current_value = initial_value
         self.target_value = initial_value
         self.velocity = 0.0
-        self.min_val = min_val
-        self.max_val = max_val
         
         # Configuration physique
         # frequency: Vitesse de réaction (Hz). Plus haut = plus nerveux.
@@ -137,34 +120,15 @@ class SpringPhysics:
     def update(self, dt: float) -> float:
         # Simulation Euler semi-implicite pour la stabilité
         
-        # Sub-stepping pour éviter l'explosion si dt est trop grand
-        # On découpe le temps en petits morceaux (ex: max 0.05s)
-        MAX_DT = 0.05
-        if dt > MAX_DT:
-            steps = int(dt / MAX_DT) + 1
-            step_dt = dt / steps
-        else:
-            steps = 1
-            step_dt = dt
-
-        for _ in range(steps):
-            # Calcul de l'erreur
-            error = self.target_value - self.current_value
-            
-            # Accélération (F = ma, ici m=1)
-            acceleration = (error * self.kp) - (self.velocity * self.kd)
-            
-            # Intégration
-            self.velocity += acceleration * step_dt
-            self.current_value += self.velocity * step_dt
-            
-            # Hard clamp internal state
-            if self.current_value < self.min_val: 
-                self.current_value = self.min_val
-                self.velocity = 0
-            if self.current_value > self.max_val: 
-                self.current_value = self.max_val
-                self.velocity = 0
+        # Calcul de l'erreur
+        error = self.target_value - self.current_value
+        
+        # Accélération (F = ma, ici m=1)
+        acceleration = (error * self.kp) - (self.velocity * self.kd)
+        
+        # Intégration
+        self.velocity += acceleration * dt
+        self.current_value += self.velocity * dt
         
         return self.current_value
 
