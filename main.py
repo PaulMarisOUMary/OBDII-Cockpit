@@ -71,6 +71,8 @@ def main() -> None:
     try:
         while True:
             dt = clock.get_time() / 1000.0
+            if dt > 0.1:
+                dt = 0.1
 
             for event in get():
                 if event.type == QUIT:

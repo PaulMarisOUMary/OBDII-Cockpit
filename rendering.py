@@ -93,73 +93,82 @@ class Dashboard:
 
 
         self.speed_filter = SignalFilter(window_size=3)
-        self.speed_predictor = DeadReckoningPredictor(max_prediction_time=0.2)
+        self.speed_predictor = DeadReckoningPredictor(max_prediction_time=0.2, max_val=self.MAX_SPEED)
         self.speed_smoother = Interpolator(smoothing_speed=8.0)
 
-        self.speed_ghost_predictor = DeadReckoningPredictor(max_prediction_time=0.5)
-        self.speed_ghost_physics = SpringPhysics(frequency=2.0, damping=0.5)
+        self.speed_ghost_predictor = DeadReckoningPredictor(max_prediction_time=0.5, max_val=self.MAX_SPEED)
+        self.speed_ghost_physics = SpringPhysics(frequency=2.0, damping=0.5, max_val=self.MAX_SPEED)
 
-        self.rpm_predictor = DeadReckoningPredictor(max_prediction_time=0.2)
-        self.rpm_physics = SpringPhysics(frequency=5.0, damping=0.7)
+        self.rpm_predictor = DeadReckoningPredictor(max_prediction_time=0.2, max_val=self.MAX_RPM)
+        self.rpm_physics = SpringPhysics(frequency=5.0, damping=0.7, max_val=self.MAX_RPM)
         self.rpm_idle_sim = IdleSimulator(intensity=7.5, noise_speed=8.0)
 
-        self.rpm_ghost_predictor = DeadReckoningPredictor(max_prediction_time=0.5)
-        self.rpm_ghost_physics = SpringPhysics(frequency=2.0, damping=0.5)
+        self.rpm_ghost_predictor = DeadReckoningPredictor(max_prediction_time=0.5, max_val=self.MAX_RPM)
+        self.rpm_ghost_physics = SpringPhysics(frequency=2.0, damping=0.5, max_val=self.MAX_RPM)
 
     def draw(self, screen: Surface, storage: Dict[str, Any], dt: float) -> None:
         """Render the dashboard."""
-        raw_speed = safe_int(storage.get("VEHICLE_SPEED", 0))
-        raw_rpm = safe_int(storage.get("ENGINE_SPEED", 0))
+        # Retrieve raw values, allowing None
+        val_speed = storage.get("VEHICLE_SPEED")
+        val_rpm = storage.get("ENGINE_SPEED")
+        
         raw_load = safe_int(storage.get("ENGINE_LOAD", 0))
         raw_coolant = safe_int(storage.get("ENGINE_COOLANT_TEMP", 0))
 
-        # raw_rpm = 800
-        # raw_speed = 50
-
-        # oil = safe_int(storage.get("ENGINE_OIL_TEMP", 0))
-        # in_press = safe_int(storage.get("INTAKE_PRESSURE", 0))
-        # baro = safe_int(storage.get("BAROMETRIC_PRESSURE", 0))
-
-        # boost_kpa = in_press - (baro or 1000)
-        # if rpm > 1500 and boost_kpa > 15: 
-        #     print("TURRBOOOOO")
-
         # SPEED
-        filtered_speed = self.speed_filter.filter(raw_speed)
-        self.speed_predictor.push_update(filtered_speed)
+        # Only update predictor if we have a valid reading (not None)
+        if val_speed is not None:
+            raw_speed = safe_int(val_speed)
+            
+            # Glitch filter: Ignore sudden 0 if we are moving (> 5 km/h)
+            if raw_speed == 0 and self.speed_smoother.current_value > 5:
+                pass
+            else:
+                filtered_speed = self.speed_filter.filter(raw_speed)
+                self.speed_predictor.push_update(filtered_speed)
+            
         predicted_speed = self.speed_predictor.get_predicted_value()
         self.speed_smoother.set_target(predicted_speed)
         speed_display = safe_int(self.speed_smoother.update(dt))
 
         # RPM
-        self.rpm_predictor.push_update(raw_rpm)
+        # Only update predictor if we have a valid reading (not None)
+        if val_rpm is not None:
+            raw_rpm = safe_int(val_rpm)
+            
+            # Glitch filter: Ignore sudden 0 if engine is running (> 400 RPM)
+            if raw_rpm == 0 and self.rpm_physics.current_value > 400:
+                pass
+            else:
+                self.rpm_predictor.push_update(raw_rpm)
+            
         predicted_rpm = self.rpm_predictor.get_predicted_value()
         self.rpm_physics.set_target(predicted_rpm)
         rpm_physical = self.rpm_physics.update(dt)
         rpm_display = safe_int(self.rpm_idle_sim.apply(rpm_physical, dt))
 
-        # DIFF = 50
+        DIFF = 50
 
-        # self.speed_ghost_predictor.push_update(raw_speed)
-        # predicted_speed_ghost = self.speed_ghost_predictor.get_predicted_value()
-        # self.speed_ghost_physics.set_target(predicted_speed_ghost)
-        # speed_ghost_val = self.speed_ghost_physics.update(dt)
+        self.speed_ghost_predictor.push_update(speed_display)
+        predicted_speed_ghost = self.speed_ghost_predictor.get_predicted_value()
+        self.speed_ghost_physics.set_target(predicted_speed_ghost)
+        speed_ghost_val = self.speed_ghost_physics.update(dt)
 
-        # speed_diff = abs(speed_display - speed_ghost_val)
-        # if speed_diff > DIFF:
-        #     speed_diff = DIFF
-        # speed_ghost_display = safe_int(speed_display + speed_diff)
+        speed_diff = abs(speed_display - speed_ghost_val)
+        if speed_diff > DIFF:
+            speed_diff = DIFF
+        speed_ghost_display = safe_int(speed_display + speed_diff)
 
 
-        # self.rpm_ghost_predictor.push_update(raw_rpm)
-        # predicted_rpm_ghost = self.rpm_ghost_predictor.get_predicted_value()
-        # self.rpm_ghost_physics.set_target(predicted_rpm_ghost)
-        # rpm_ghost_val = self.rpm_ghost_physics.update(dt)
+        self.rpm_ghost_predictor.push_update(rpm_display)
+        predicted_rpm_ghost = self.rpm_ghost_predictor.get_predicted_value()
+        self.rpm_ghost_physics.set_target(predicted_rpm_ghost)
+        rpm_ghost_val = self.rpm_ghost_physics.update(dt)
 
-        # rpm_diff = abs(rpm_display - rpm_ghost_val)
-        # if rpm_diff > 15:
-        #     rpm_diff = 15
-        # rpm_ghost_display = safe_int(rpm_display + rpm_diff)
+        rpm_diff = abs(rpm_display - rpm_ghost_val)
+        if rpm_diff > 50:
+            rpm_diff = 50
+        rpm_ghost_display = safe_int(rpm_display + rpm_diff)
 
 
         screen.blit(self._bg_cache, (0, 0))
@@ -168,10 +177,10 @@ class Dashboard:
         self.coolant_gauge.draw(screen, raw_coolant)
         self.load_gauge.draw(screen, raw_load)
 
-        # self.speed_ghost_gauge.draw(screen, speed_ghost_display)
+        self.speed_ghost_gauge.draw(screen, speed_ghost_display)
         self.speed_gauge.draw(screen, speed_display)
 
-        # self.rpm_ghost_gauge.draw(screen, rpm_ghost_display)
+        self.rpm_ghost_gauge.draw(screen, rpm_ghost_display)
         self.rpm_gauge.draw(screen, rpm_display)
 
         self.speed_digit.draw(screen, speed_display)
