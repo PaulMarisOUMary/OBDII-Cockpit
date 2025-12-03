@@ -19,12 +19,12 @@ SERIAL_PORT = "/dev/ttyUSB0"
 environ["PYGAME_HIDE_SUPPORT_PROMPT"] = '1'
 
 DEFAULT_FETCH_COMMANDS = {
-    commands.VEHICLE_SPEED.name: "HIGH",
-    commands.ENGINE_SPEED.name: "HIGH",
-    commands.ENGINE_LOAD.name: "MEDIUM",
+    commands.VEHICLE_SPEED.name,
+    commands.ENGINE_SPEED.name,
+    commands.ENGINE_LOAD.name,
 
     # commands.ENGINE_OIL_TEMP.name,
-    commands.ENGINE_COOLANT_TEMP.name: "LOW",
+    commands.ENGINE_COOLANT_TEMP.name,
     # commands.INTAKE_AIR_TEMP.name,
 
     # commands.BAROMETRIC_PRESSURE.name,

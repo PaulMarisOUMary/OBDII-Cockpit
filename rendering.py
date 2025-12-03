@@ -5,7 +5,6 @@ from pygame import Surface
 from pygame.font import Font
 from pygame.transform import flip
 
-from advanced_logic import DeadReckoningPredictor, Interpolator, SignalFilter, SpringPhysics, IdleSimulator
 from config import WIDTH, HEIGHT
 from widgets.digit import Digit
 from widgets.gauge import Gauge
@@ -82,24 +81,12 @@ class Dashboard:
         self.speed_digit = Digit(self.big_font, self.SPEED_POS, 3, color_white, -5)
         self.rpm_digit = Digit(self.big_font, self.RPM_POS, 4, color_white, -5)
 
-
-        self.speed_filter = SignalFilter(window_size=3)
-        self.speed_predictor = DeadReckoningPredictor(max_prediction_time=0.2)
-        self.speed_smoother = Interpolator(smoothing_speed=8.0)
-
-        self.rpm_filter = SignalFilter(window_size=1) 
-        self.rpm_predictor = DeadReckoningPredictor(max_prediction_time=0.2)
-        self.rpm_physics = SpringPhysics(frequency=5.0, damping=0.7)
-        self.rpm_idle_sim = IdleSimulator(intensity=20.0, noise_speed=8.0)
-
-    def draw(self, screen: Surface, storage: Dict[str, Any], dt: float) -> None:
+    def draw(self, screen: Surface, storage: Dict[str, Any]):
         """Render the dashboard."""
-        raw_speed = safe_int(storage.get("VEHICLE_SPEED", 0))
-        raw_rpm = safe_int(storage.get("ENGINE_SPEED", 0))
-        raw_load = safe_int(storage.get("ENGINE_LOAD", 0))
-        raw_coolant = safe_int(storage.get("ENGINE_COOLANT_TEMP", 0))
-
-        # raw_rpm = 800
+        speed = safe_int(storage.get("VEHICLE_SPEED", 0))
+        rpm = safe_int(storage.get("ENGINE_SPEED", 0))
+        load = safe_int(storage.get("ENGINE_LOAD", 0))
+        coolant = safe_int(storage.get("ENGINE_COOLANT_TEMP", 0))
 
         # oil = safe_int(storage.get("ENGINE_OIL_TEMP", 0))
         # in_press = safe_int(storage.get("INTAKE_PRESSURE", 0))
@@ -109,29 +96,13 @@ class Dashboard:
         # if rpm > 1500 and boost_kpa > 15: 
         #     print("TURRBOOOOO")
 
-        # SPEED
-        filtered_speed = self.speed_filter.filter(raw_speed)
-        self.speed_predictor.push_update(filtered_speed)
-        predicted_speed = self.speed_predictor.get_predicted_value()
-        self.speed_smoother.set_target(predicted_speed)
-        speed_display = safe_int(self.speed_smoother.update(dt))
-
-        # RPM
-        filtered_rpm = self.rpm_filter.filter(raw_rpm)
-        self.rpm_predictor.push_update(filtered_rpm)
-        predicted_rpm = self.rpm_predictor.get_predicted_value()
-        self.rpm_physics.set_target(predicted_rpm)
-        rpm_physical = self.rpm_physics.update(dt)
-        rpm_display = safe_int(self.rpm_idle_sim.apply(rpm_physical, dt))
-
-
         screen.blit(self._bg_cache, (0, 0))
 
         # self.oil_gauge.draw(screen, oil)
-        self.coolant_gauge.draw(screen, raw_coolant)
-        self.load_gauge.draw(screen, raw_load)
-        self.speed_gauge.draw(screen, speed_display)
-        self.rpm_gauge.draw(screen, rpm_display)
+        self.coolant_gauge.draw(screen, coolant)
+        self.load_gauge.draw(screen, load)
+        self.speed_gauge.draw(screen, speed)
+        self.rpm_gauge.draw(screen, rpm)
 
-        self.speed_digit.draw(screen, speed_display)
-        self.rpm_digit.draw(screen, rpm_display)
+        self.speed_digit.draw(screen, speed)
+        self.rpm_digit.draw(screen, rpm)
