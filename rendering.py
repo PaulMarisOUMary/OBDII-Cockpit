@@ -1,7 +1,7 @@
 from functools import partial
 from typing import Any, Dict
 
-from pygame import BLEND_MULT, Surface
+from pygame import Surface
 from pygame.font import Font
 from pygame.transform import flip
 
@@ -75,15 +75,6 @@ class Dashboard:
         )
         self.rpm_gauge = Gauge(self.right_bar, self.RIGHT_BAR_POS, self.MAX_RPM, ratio_fn=rpm_ratio_fn)
 
-        self.right_bar_ghost = self.right_bar.copy()
-        red_tint = Surface(self.right_bar_ghost.get_size())
-        red_tint.fill((255, 50, 50))
-        self.right_bar_ghost.blit(red_tint, (0, 0), special_flags=BLEND_MULT)
-        self.rpm_ghost_gauge = Gauge(self.right_bar_ghost, self.RIGHT_BAR_POS, self.MAX_RPM, ratio_fn=rpm_ratio_fn)
-
-        self.left_bar_ghost = flip(self.right_bar_ghost.copy(), True, False)
-        self.speed_ghost_gauge = Gauge(self.left_bar_ghost, self.LEFT_BAR_POS, self.MAX_SPEED)
-
         self.oil_gauge = Gauge(self.left_group_bar, self.LEFT_GROUP_BAR_POS, self.MAX_OIL)
         self.coolant_gauge = Gauge(self.left_group_bar, self.LEFT_GROUP_BAR_POS_BIS, self.MAX_COOLANT)
         self.load_gauge = Gauge(self.right_group_bar, self.RIGHT_GROUP_BAR_POS, self.MAX_LOAD)
@@ -96,15 +87,10 @@ class Dashboard:
         self.speed_predictor = DeadReckoningPredictor(max_prediction_time=0.2)
         self.speed_smoother = Interpolator(smoothing_speed=8.0)
 
-        self.speed_ghost_predictor = DeadReckoningPredictor(max_prediction_time=0.5)
-        self.speed_ghost_physics = SpringPhysics(frequency=2.0, damping=0.5)
-
+        self.rpm_filter = SignalFilter(window_size=1) 
         self.rpm_predictor = DeadReckoningPredictor(max_prediction_time=0.2)
         self.rpm_physics = SpringPhysics(frequency=5.0, damping=0.7)
-        self.rpm_idle_sim = IdleSimulator(intensity=7.5, noise_speed=8.0)
-
-        self.rpm_ghost_predictor = DeadReckoningPredictor(max_prediction_time=0.5)
-        self.rpm_ghost_physics = SpringPhysics(frequency=2.0, damping=0.5)
+        self.rpm_idle_sim = IdleSimulator(intensity=20.0, noise_speed=8.0)
 
     def draw(self, screen: Surface, storage: Dict[str, Any], dt: float) -> None:
         """Render the dashboard."""
@@ -114,7 +100,6 @@ class Dashboard:
         raw_coolant = safe_int(storage.get("ENGINE_COOLANT_TEMP", 0))
 
         # raw_rpm = 800
-        # raw_speed = 50
 
         # oil = safe_int(storage.get("ENGINE_OIL_TEMP", 0))
         # in_press = safe_int(storage.get("INTAKE_PRESSURE", 0))
@@ -132,34 +117,12 @@ class Dashboard:
         speed_display = safe_int(self.speed_smoother.update(dt))
 
         # RPM
-        self.rpm_predictor.push_update(raw_rpm)
+        filtered_rpm = self.rpm_filter.filter(raw_rpm)
+        self.rpm_predictor.push_update(filtered_rpm)
         predicted_rpm = self.rpm_predictor.get_predicted_value()
         self.rpm_physics.set_target(predicted_rpm)
         rpm_physical = self.rpm_physics.update(dt)
         rpm_display = safe_int(self.rpm_idle_sim.apply(rpm_physical, dt))
-
-        # DIFF = 50
-
-        # self.speed_ghost_predictor.push_update(raw_speed)
-        # predicted_speed_ghost = self.speed_ghost_predictor.get_predicted_value()
-        # self.speed_ghost_physics.set_target(predicted_speed_ghost)
-        # speed_ghost_val = self.speed_ghost_physics.update(dt)
-
-        # speed_diff = abs(speed_display - speed_ghost_val)
-        # if speed_diff > DIFF:
-        #     speed_diff = DIFF
-        # speed_ghost_display = safe_int(speed_display + speed_diff)
-
-
-        # self.rpm_ghost_predictor.push_update(raw_rpm)
-        # predicted_rpm_ghost = self.rpm_ghost_predictor.get_predicted_value()
-        # self.rpm_ghost_physics.set_target(predicted_rpm_ghost)
-        # rpm_ghost_val = self.rpm_ghost_physics.update(dt)
-
-        # rpm_diff = abs(rpm_display - rpm_ghost_val)
-        # if rpm_diff > 15:
-        #     rpm_diff = 15
-        # rpm_ghost_display = safe_int(rpm_display + rpm_diff)
 
 
         screen.blit(self._bg_cache, (0, 0))
@@ -167,11 +130,7 @@ class Dashboard:
         # self.oil_gauge.draw(screen, oil)
         self.coolant_gauge.draw(screen, raw_coolant)
         self.load_gauge.draw(screen, raw_load)
-
-        # self.speed_ghost_gauge.draw(screen, speed_ghost_display)
         self.speed_gauge.draw(screen, speed_display)
-
-        # self.rpm_ghost_gauge.draw(screen, rpm_ghost_display)
         self.rpm_gauge.draw(screen, rpm_display)
 
         self.speed_digit.draw(screen, speed_display)

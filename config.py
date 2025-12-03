@@ -7,7 +7,6 @@ from obdii import commands
 SYSTEM = system()
 
 TARGET_FPS = 60
-SIMULATION = False
 
 WIDTH, HEIGHT = 1280, 400
 FULLSCREEN_MODE = True
@@ -36,8 +35,7 @@ if SYSTEM == "Windows":
     SERIAL_PORT = "COM10"
     ROTATED_BY_90 = False
     FULLSCREEN_MODE = False
-
-    SIMULATION = True
+    LOG_LEVEL = DEBUG
 
 elif SYSTEM == "Linux":
     environ["SDL_VIDEODRIVER"] = "KMSDRM"
