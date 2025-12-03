@@ -1,16 +1,18 @@
 from logging import getLogger
 from logging.handlers import RotatingFileHandler
 
-from config import DEFAULT_FETCH_COMMANDS, FULLSCREEN_MODE, HEIGHT, LOG_LEVEL, ROTATED_BY_90, SERIAL_PORT, TARGET_FPS, WIDTH
+from config import DEFAULT_FETCH_COMMANDS, FULLSCREEN_MODE, HEIGHT, LOG_LEVEL, ROTATED_BY_90, SERIAL_PORT, SIMULATION, TARGET_FPS, WIDTH
 
 from blue_filter import BlueFilter
 from connection import ConnectionManager
+from simulation import Simulator
 from storage import StorageUpdater
 
 from pygame import MOUSEBUTTONDOWN, Surface, display, font, init, mouse, quit, time, transform, FULLSCREEN, QUIT
 from pygame.event import get
 
 from obdii import Connection, at_commands
+
 
 def main() -> None:
     init()
@@ -60,6 +62,8 @@ def main() -> None:
     from rendering import Dashboard
 
     dashboard = Dashboard()
+    if SIMULATION:
+        simulator = Simulator()
     
     rotated_cache = None
     needs_rotation = ROTATED_BY_90
@@ -77,6 +81,10 @@ def main() -> None:
             conn_manager.ensure_polling()
 
             snapshot = storage_updater.copy()
+
+            if SIMULATION:
+                sim_values = simulator.update(dt) # type: ignore
+                snapshot.update(sim_values)
 
             dashboard.draw(off_screen, snapshot, dt)
 
