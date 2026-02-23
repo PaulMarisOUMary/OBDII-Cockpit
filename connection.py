@@ -73,7 +73,7 @@ class ConnectionManager:
                 try:
                     response = self.connection.query(command)
                     value = response.value
-                    if value:
+                    if value is not None:
                         # _cache[command] = value
                         self.storage_updater.update_single(command, value)
                     else:
