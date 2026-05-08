@@ -1,5 +1,6 @@
 from logging import Logger
 from threading import Event, Thread
+from time import monotonic
 
 from obdii import Connection
 from obdii.errors import ResponseBaseError
@@ -10,6 +11,8 @@ from storage import StorageUpdater
 
 
 class ConnectionManager:
+    RECONNECT_DELAY = 5.0
+
     def __init__(self, connection: Connection, storage_updater: StorageUpdater, logger: Logger):
         self.connection = connection
         self.storage_updater = storage_updater
@@ -17,6 +20,7 @@ class ConnectionManager:
 
         self._running = False
         self._is_startup = True
+        self._last_reconnect_attempt = 0.0
 
         self.polling_stop = Event()
         self.polling_error = Event()
@@ -45,6 +49,10 @@ class ConnectionManager:
 
     def ensure_polling(self) -> None:
         if not self.fetch_thread or not self.fetch_thread.is_alive() or self.polling_error.is_set():
+            now = monotonic()
+            if now - self._last_reconnect_attempt < self.RECONNECT_DELAY:
+                return
+            self._last_reconnect_attempt = now
             self.reconnect()
 
     def reconnect(self) -> None:

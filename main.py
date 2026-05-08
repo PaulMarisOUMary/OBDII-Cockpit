@@ -48,7 +48,6 @@ def main() -> None:
     conn.init_sequence.extend(
         [
             at_commands.LINEFEED_OFF,
-            at_commands.DLC_OFF,
             at_commands.SET_TIMEOUT(10),
         ]
     )
@@ -60,8 +59,7 @@ def main() -> None:
     from rendering import Dashboard
 
     dashboard = Dashboard()
-    
-    rotated_cache = None
+
     needs_rotation = ROTATED_BY_90
 
     try:
@@ -81,10 +79,7 @@ def main() -> None:
             dashboard.draw(off_screen, snapshot, dt)
 
             if needs_rotation:
-                if rotated_cache is None or rotated_cache.get_size() != (HEIGHT, WIDTH):
-                    rotated_cache = Surface((HEIGHT, WIDTH))
-                rotated_cache.blit(transform.rotate(off_screen, 90), (0, 0))
-                screen.blit(rotated_cache, (0, 0))
+                screen.blit(transform.rotate(off_screen, 90), (0, 0))
             else:
                 screen.blit(off_screen, (0, 0))
 
@@ -92,12 +87,11 @@ def main() -> None:
 
             display.flip()
 
-            clock.tick(TARGET_FPS)
-
             # import pygame
             # pygame.image.save(screen, "dashboard.png")
             # break
-    except KeyboardInterrupt: ...
+    except KeyboardInterrupt:
+        _logger.info("Shutting down.")
     finally:
         conn_manager.stop()
         conn_manager.connection.close()
