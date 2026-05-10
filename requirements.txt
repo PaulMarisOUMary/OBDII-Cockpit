@@ -1,4 +1,4 @@
 numpy
-pygame
+# pygame # install from apt on raspberry
 py-obdii
 # ELM327-emulator
