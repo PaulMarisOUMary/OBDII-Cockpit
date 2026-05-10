@@ -4,10 +4,18 @@ Raspberry Pi 7.9" DSI Dashboard Setup
 This guide explains how to setup a Raspberry Pi 3B+/CM4/CM5 with a Waveshare 7.9" DSI LCD
 and run a Python Pygame dashboard at boot, fully silent and fullscreen.
 
+.. image:: ../docs/cockpit-sim.png
+    :alt: Dashboard
+    :width: 100%
+
 Screen Reference
 ----------------
 - Waveshare 7.9inch DSI LCD: https://www.waveshare.com/7.9inch-dsi-lcd.htm
 - Documentation / Wiki: https://www.waveshare.com/wiki/7.9inch_DSI_LCD
+
+.. image:: ../docs/cockpit.png
+    :alt: Dashboard
+    :width: 33%
 
 Prerequisites
 -------------
