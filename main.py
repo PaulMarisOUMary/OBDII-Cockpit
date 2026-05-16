@@ -1,4 +1,5 @@
-from logging import getLogger
+from datetime import datetime
+from logging import getLogger, Formatter
 from logging.handlers import RotatingFileHandler
 
 from config import DEFAULT_COMMANDS, FULLSCREEN_MODE, HEIGHT, LOG_LEVEL, ROTATED_BY_90, SERIAL_PORT, TARGET_FPS, WIDTH
@@ -28,19 +29,27 @@ def main() -> None:
 
     clock = time.Clock()
 
+    filename = datetime.now().strftime("obd_%m-%d-%y.log")
     file_handler = RotatingFileHandler(
-        filename="obd_dash.log",
+        filename=filename,
         maxBytes=32*1024*1024,
-        backupCount=10,
+        backupCount=0,
+    )
+    formatter = Formatter(
+        fmt="{asctime} {levelname:<5} {name}: {message}",
+        datefmt="%m-%d-%y %H:%M:%S",
+        style='{'
     )
     _logger = getLogger("obdii")
 
     conn = Connection(
         SERIAL_PORT,
-        log_level=LOG_LEVEL,
-        log_handler=file_handler,
-        early_return=True,
         auto_connect=False,
+        early_return=True,
+
+        log_handler=file_handler,
+        log_formatter=formatter,
+        log_level=LOG_LEVEL,
 
         timeout=1.0,
         write_timeout=1.0,
