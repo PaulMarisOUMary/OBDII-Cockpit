@@ -4,6 +4,8 @@ OBDII-Cockpit
 A real-time OBDII dashboard, running on a Raspberry Pi with a DSI display.
 Powered by `py-obdii <https://github.com/PaulMarisOUMary/OBDII>`_.
 
+Originally a private personal project, now open-sourced. Runs daily in my own car.
+
 .. image:: ../docs/cockpit-sim.png
     :alt: Dashboard simulator preview
     :width: 100%
@@ -242,3 +244,9 @@ See what services take time to start:
 
     sudo systemctl disable console-setup.service
     sudo systemctl disable keyboard-setup.service
+
+Related
+-------
+
+- `py-obdii <https://github.com/PaulMarisOUMary/OBDII>`_ (`pip <https://pypi.org/project/py-obdii/>`_) - the Python OBDII library powering this dashboard
+- `ELM327-Emulator <https://pypi.org/project/ELM327-emulator>`_ - simulate a vehicle for development
