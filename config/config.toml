@@ -1,0 +1,30 @@
+[display]
+width = 1280
+height = 400
+fullscreen = true
+rotated_by_90 = true
+target_fps = 60
+
+[connection]
+serial_port = "/dev/ttyUSB0"
+
+[logging]
+level = "INFO"
+
+[environ]
+PYGAME_HIDE_SUPPORT_PROMPT = "1"
+SDL_VIDEODRIVER = "KMSDRM"
+SDL_KMSDRM_DEVICE = "/dev/dri/card0"
+
+[commands]
+VEHICLE_SPEED = 1
+ENGINE_SPEED = 1
+ENGINE_LOAD = 1
+ENGINE_COOLANT_TEMP = 10
+# ENGINE_OIL_TEMP = 10
+# INTAKE_AIR_TEMP = 10
+# INTAKE_PRESSURE = 10
+# BAROMETRIC_PRESSURE = 100
+
+[dev]
+force_dev_mode = false

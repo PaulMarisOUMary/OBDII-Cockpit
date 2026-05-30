@@ -1,0 +1,13 @@
+[display]
+fullscreen = false
+rotated_by_90 = false
+
+[connection]
+serial_port = "COM10"
+
+[logging]
+level = "DEBUG"
+
+[environ]
+SDL_VIDEODRIVER = ""
+SDL_KMSDRM_DEVICE = ""

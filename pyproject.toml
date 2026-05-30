@@ -1,0 +1,18 @@
+[project]
+name = "obdii-cockpit"
+version = "0.1.0"
+description = "An OBDII dashboard for Raspberry Pi."
+readme = { file = ".github/README.rst", content-type = "text/x-rst" }
+authors = [{ name = "PaulMarisOUMary" }]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+requires-python = ">=3.8"
+
+[project.urls]
+Repository = "https://github.com/PaulMarisOUMary/OBDII-Cockpit"
+
+[tool.setuptools.dynamic]
+dependencies = { file = "requirements.txt" }
+
+[tool.ty.analysis]
+allowed-unresolved-imports = ["tomllib", "tomli"]

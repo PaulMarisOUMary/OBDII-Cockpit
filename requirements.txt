@@ -1,4 +1,10 @@
-numpy
-# pygame # install from apt on raspberry
+numpy>=2,<3
+
 py-obdii
-# ELM327-emulator
+
+tomli>=2,<3;python_version<"3.11"
+
+# Install it from apt on Raspberry Pi
+pygame>=2,<3;platform_system=="Windows"
+
+ELM327-Emulator>=3,<4;platform_system=="Windows"
