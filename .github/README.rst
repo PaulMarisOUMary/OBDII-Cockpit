@@ -1,29 +1,49 @@
-Raspberry Pi 7.9" DSI Dashboard Setup
-=====================================
+OBDII-Cockpit
+=============
 
-This guide explains how to setup a Raspberry Pi 3B+/CM4/CM5 with a Waveshare 7.9" DSI LCD
-and run a Python Pygame dashboard at boot, fully silent and fullscreen.
+A real-time OBDII dashboard, running on a Raspberry Pi with a DSI display.
+Powered by `py-obdii <https://github.com/PaulMarisOUMary/OBDII>`_.
 
 .. image:: ../docs/cockpit-sim.png
-    :alt: Dashboard
+    :alt: Dashboard simulator preview
     :width: 100%
 
-Screen Reference
-----------------
-- Waveshare 7.9inch DSI LCD: https://www.waveshare.com/7.9inch-dsi-lcd.htm
-- Documentation / Wiki: https://www.waveshare.com/wiki/7.9inch_DSI_LCD
-
 .. image:: ../docs/cockpit.png
-    :alt: Dashboard
+    :alt: Dashboard running in a real car
     :width: 33%
 
+----
+
+Features
+--------
+
+- Live display of speed, RPM, engine load, coolant temperature, oil temperature, and more
+- Automatic blue light filter based on time of day
+- Configurable polling frequency per OBD command
+- Automatic reconnection on connection loss
+- Rotating log files per session
+- Development mode with simulator
+
+Hardware
+--------
+
+- Raspberry Pi 3B+/CM4/CM5
+- `Waveshare 7.9" DSI LCD <https://www.waveshare.com/7.9inch-dsi-lcd.htm>`_ (`Wiki <https://www.waveshare.com/wiki/7.9inch_DSI_LCD>`_)
+- Any ELM327 compatible OBDII adapter (USB, WiFi, Bluetooth)
+
+
+Raspberry Pi Setup
+------------------
+
+This guide explains how to setup a Raspberry Pi 3B+/CM4/CM5 with a Waveshare 7.9" DSI LCD and run a Python Pygame dashboard at boot, fully silent and fullscreen.
+
 Prerequisites
--------------
+^^^^^^^^^^^^^
 
 Configure SSH, User (your_user) and WiFi before flashing the image.
 
 Install Dependencies
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -35,13 +55,15 @@ Install Dependencies
     sudo apt install python3-pygame -y
 
 Add User to Video Group
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
+
 .. code-block:: bash
 
     sudo usermod -aG video your_user
 
 Create Project Directory & Virtual Environment
------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. code-block:: bash
 
     mkdir ~/Dashboard
@@ -50,7 +72,8 @@ Create Project Directory & Virtual Environment
     pip install -r requirements.txt
 
 Configure Display
------------------
+^^^^^^^^^^^^^^^^^
+
 Edit `sudo nano /boot/firmware/config.txt`:
 
 .. code-block:: ini
@@ -121,13 +144,15 @@ Edit `sudo nano /boot/firmware/cmdline.txt` (all on one line):
 - Same thing for `cfg80211.ieee80211_regdom=FR`
 
 Suppress Login Prompt
----------------------
+^^^^^^^^^^^^^^^^^^^^^
+
 .. code-block:: bash
 
     sudo systemctl disable getty@tty1.service
 
 Create Systemd Service for Dashboard
-------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 File: `sudo nano /etc/systemd/system/obd-dashboard.service`
 
 .. code-block:: ini
@@ -157,7 +182,7 @@ File: `sudo nano /etc/systemd/system/obd-dashboard.service`
     WantedBy=multi-user.target
 
 Splash Screen
--------------
+^^^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -172,7 +197,7 @@ Splash Screen
     sudo update-initramfs -u
 
 Enable and Start Service
-------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -181,7 +206,7 @@ Enable and Start Service
     sudo systemctl start obd-dashboard.service
 
 Optimize Boot
--------------
+^^^^^^^^^^^^^
 
 See what services take time to start:
 
