@@ -33,7 +33,7 @@ def main() -> None:
     file_handler = RotatingFileHandler(
         filename=filename,
         maxBytes=32*1024*1024,
-        backupCount=0,
+        backupCount=15,
     )
     formatter = Formatter(
         fmt="{asctime} {levelname:<5} {name}: {message}",
