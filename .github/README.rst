@@ -105,6 +105,7 @@ Edit `sudo nano /boot/firmware/config.txt`:
     auto_initramfs=1
 
     # Enable DRM VC4 V3D driver
+    # dtoverlay=vc4-kms-v3d,noaudio # disable audio drivers
     dtoverlay=vc4-kms-v3d
     max_framebuffers=2
 
@@ -135,12 +136,14 @@ Edit `sudo nano /boot/firmware/config.txt`:
 
     [all]
     dtoverlay=vc4-kms-dsi-waveshare-panel,7_9_inch
+    # dtoverlay=disable-wifi # disable wlan interface
+    # dtoverlay=disable-bt # disable bluetooth
 
 Edit `sudo nano /boot/firmware/cmdline.txt` (all on one line):
 
 .. code-block:: text
 
-    video=DSI-1:400x1280e,rotate=90 console=tty3 root=PARTUUID=8adb8d1c-02 rootfstype=ext4 fsck.repair=yes rootwait quiet fastboot splash loglevel=3 plymouth.ignore-serial-consoles vt.global_cursor_default=0 cfg80211.ieee80211_regdom=FR
+    video=DSI-1:400x1280e,rotate=90 console=tty3 root=PARTUUID=8adb8d1c-02 rootfstype=ext4,rcupdate.rcu_expedited=1 fsck.repair=yes rootwait quiet fastboot splash loglevel=3 plymouth.ignore-serial-consoles vt.global_cursor_default=0 cfg80211.ieee80211_regdom=FR
 
 - Keep your own `root=PARTUUID=8adb8d1c-02`
 - Same thing for `cfg80211.ieee80211_regdom=FR`
