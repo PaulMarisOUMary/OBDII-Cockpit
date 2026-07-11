@@ -123,7 +123,7 @@ Edit `sudo nano /boot/firmware/cmdline.txt` (all on one line):
 
 .. code-block:: text
 
-    video=DSI-1:400x1280e,rotate=90 console=tty1 cfg80211.ieee80211_regdom=FR root=PARTUUID=8adb8d1c-02 rootfstype=ext4 rcupdate.rcu_expedited=1 fsck.repair=yes rootwait splash plymouth.ignore-serial-consoles quiet loglevel=3 systemd.show_status=0 vt.global_cursor_default=0 mitigations=off panic=5 systemd.crash_reboot=1
+    video=DSI-1:400x1280e,rotate=90 console=tty1 cfg80211.ieee80211_regdom=FR root=PARTUUID=8adb8d1c-02 rootfstype=ext4 rcupdate.rcu_expedited=1 fsck.repair=yes initial_turbo=25 rootwait splash plymouth.ignore-serial-consoles quiet loglevel=3 systemd.show_status=0 vt.global_cursor_default=0 mitigations=off panic=5 systemd.crash_reboot=1
 
 - Keep your own `root=PARTUUID=8adb8d1c-02`
 - Same thing for `cfg80211.ieee80211_regdom=FR`
@@ -145,8 +145,8 @@ File: `sudo nano /etc/systemd/system/obd-dashboard.service`
     [Unit]
     Description=OBDII Dashboard
     DefaultDependencies=no
-    After=local-fs.target systemd-udevd.service
-    Requires=local-fs.target
+    After=systemd-udevd.service
+    Requires=systemd-udevd.service
 
     [Service]
     Type=simple
@@ -164,8 +164,10 @@ File: `sudo nano /etc/systemd/system/obd-dashboard.service`
     StandardOutput=inherit
     StandardError=inherit
 
+    Nice=-20
+
     [Install]
-    WantedBy=multi-user.target
+    WantedBy=sysinit.target
 
 Splash Screen
 ^^^^^^^^^^^^^
@@ -230,6 +232,54 @@ See what services take time to start:
     sudo systemctl disable triggerhappy.socket triggerhappy.service
 
     sudo systemctl disable rpc-statd-notify.service
+
+Optimization Results
+^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: text
+    Model: Raspberry Pi 3 Model B Rev 1.2
+    CPU: 4
+    RAM: 927 MB
+    Storage: 59500 MB
+
+Optimization results:
+
+.. code-block:: bash
+
+    Startup finished in 5.270s (kernel) + 7.441s (userspace) = 12.712s
+    multi-user.target reached after 7.396s in userspace.
+
+.. code-block:: bash
+
+    $ systemd-analyze critical-chain
+
+    multi-user.target @7.396s
+    └─ssh.service @6.851s +542ms
+    └─network.target @6.819s
+        └─NetworkManager.service @4.800s +2.016s
+        └─dbus.service @3.338s +1.439s
+            └─basic.target @3.270s
+            └─sockets.target @3.269s
+                └─dbus.socket @3.269s
+                └─sysinit.target @3.190s
+                    └─systemd-backlight@backlight:10-0045.service @5.446s +172ms
+                    └─system-systemd\x2dbacklight.slice @5.438s
+                        └─system.slice @1.503s
+                        └─-.slice @1.502s
+
+.. code-block:: bash
+
+    $ systemd-analyze critical-chain obd-dashboard.service
+
+    obd-dashboard.service @2.578s
+    └─systemd-udevd.service @2.263s +307ms
+    └─systemd-tmpfiles-setup-dev.service @1.978s +256ms
+        └─systemd-sysusers.service @1.782s +192ms
+        └─systemd-remount-fs.service @1.620s +151ms
+            └─systemd-journald.socket @1.520s
+            └─system.slice @1.503s
+                └─-.slice @1.502s
+
 
 Related
 -------
