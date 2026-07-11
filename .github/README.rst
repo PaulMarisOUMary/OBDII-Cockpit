@@ -82,31 +82,21 @@ Edit `sudo nano /boot/firmware/config.txt`:
 
     # For more options and information see
     # http://rptl.io/configtxt
-    # Some settings may impact device functionality. See link above for details
 
-    # Uncomment some or all of these to enable the optional hardware interfaces
-    #dtparam=i2c_arm=on
-    #dtparam=i2s=on
-    #dtparam=spi=on
+    # Camera not used
+    camera_auto_detect=0
 
-    # Enable audio (loads snd_bcm2835)
-    #dtparam=audio=on
-
-    # Additional overlays and parameters are documented
-    # /boot/firmware/overlays/README
-
-    # Automatically load overlays for detected cameras
-    #camera_auto_detect=1
-
-    # Automatically load overlays for detected DSI displays
-    display_auto_detect=1
+    # Display explicitly declared below
+    display_auto_detect=0
 
     # Automatically load initramfs files, if found
     auto_initramfs=1
 
+    # Disable audio (snd_bcm2835)
+    dtparam=audio=off
+
     # Enable DRM VC4 V3D driver
-    # dtoverlay=vc4-kms-v3d,noaudio # disable audio drivers
-    dtoverlay=vc4-kms-v3d
+    dtoverlay=vc4-kms-v3d,noaudio
     max_framebuffers=2
 
     # Don't have the firmware create an initial video= setting in cmdline.txt.
@@ -125,25 +115,15 @@ Edit `sudo nano /boot/firmware/config.txt`:
     # Run as fast as firmware / board allows
     arm_boost=1
 
-    [cm4]
-    # Enable host mode on the 2711 built-in XHCI USB controller.
-    # This line should be removed if the legacy DWC2 controller is required
-    # (e.g. for USB device mode) or if USB support is not required.
-    otg_mode=1
-
-    [cm5]
-    dtoverlay=dwc2,dr_mode=host
-
     [all]
     dtoverlay=vc4-kms-dsi-waveshare-panel,7_9_inch
-    # dtoverlay=disable-wifi # disable wlan interface
-    # dtoverlay=disable-bt # disable bluetooth
+    dtoverlay=disable-bt
 
 Edit `sudo nano /boot/firmware/cmdline.txt` (all on one line):
 
 .. code-block:: text
 
-    video=DSI-1:400x1280e,rotate=90 console=tty3 root=PARTUUID=8adb8d1c-02 rootfstype=ext4,rcupdate.rcu_expedited=1 fsck.repair=yes rootwait quiet fastboot splash loglevel=3 plymouth.ignore-serial-consoles vt.global_cursor_default=0 cfg80211.ieee80211_regdom=FR
+    video=DSI-1:400x1280e,rotate=90 console=tty1 cfg80211.ieee80211_regdom=FR root=PARTUUID=8adb8d1c-02 rootfstype=ext4 rcupdate.rcu_expedited=1 fsck.repair=yes rootwait splash plymouth.ignore-serial-consoles quiet loglevel=3 systemd.show_status=0 vt.global_cursor_default=0 mitigations=off panic=5 systemd.crash_reboot=1
 
 - Keep your own `root=PARTUUID=8adb8d1c-02`
 - Same thing for `cfg80211.ieee80211_regdom=FR`
@@ -164,7 +144,8 @@ File: `sudo nano /etc/systemd/system/obd-dashboard.service`
 
     [Unit]
     Description=OBDII Dashboard
-    After=local-fs.target
+    DefaultDependencies=no
+    After=local-fs.target systemd-udevd.service
     Requires=local-fs.target
 
     [Service]
@@ -174,7 +155,7 @@ File: `sudo nano /etc/systemd/system/obd-dashboard.service`
     WorkingDirectory=/home/your_user/Dashboard
     ExecStart=/home/your_user/Dashboard/.venv/bin/python3 -OO main.py
 
-    #Restart=always
+    Restart=on-failure
 
     TTYPath=/dev/tty1
     TTYReset=yes
@@ -193,13 +174,11 @@ Splash Screen
 
     sudo apt install plymouth plymouth-themes
 
-    sudo plymouth-set-default-theme spinner
-
     sudo nano /usr/share/plymouth/themes/spinner/spinner.plymouth
 
     # Edit: VerticalAlignment=.5
 
-    sudo update-initramfs -u
+    sudo plymouth-set-default-theme -R spinner
 
 Enable and Start Service
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -247,6 +226,10 @@ See what services take time to start:
 
     sudo systemctl disable console-setup.service
     sudo systemctl disable keyboard-setup.service
+
+    sudo systemctl disable triggerhappy.socket triggerhappy.service
+
+    sudo systemctl disable rpc-statd-notify.service
 
 Related
 -------
