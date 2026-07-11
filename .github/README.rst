@@ -153,7 +153,7 @@ File: `sudo nano /etc/systemd/system/obd-dashboard.service`
     User=your_user
 
     WorkingDirectory=/home/your_user/Dashboard
-    ExecStart=/home/your_user/Dashboard/.venv/bin/python3 -OO main.py
+    ExecStart=/home/your_user/Dashboard/.venv/bin/python3 -O main.py
 
     Restart=on-failure
 
@@ -164,7 +164,8 @@ File: `sudo nano /etc/systemd/system/obd-dashboard.service`
     StandardOutput=inherit
     StandardError=inherit
 
-    Nice=-20
+    AmbientCapabilities=CAP_SYS_NICE
+    Nice=-10
 
     [Install]
     WantedBy=sysinit.target
@@ -246,39 +247,41 @@ Optimization results:
 
 .. code-block:: bash
 
-    Startup finished in 5.270s (kernel) + 7.441s (userspace) = 12.712s
-    multi-user.target reached after 7.396s in userspace.
+    $ systemd-analyze time
+
+    Startup finished in 5.788s (kernel) + 7.723s (userspace) = 13.512s
+    multi-user.target reached after 7.497s in userspace.
 
 .. code-block:: bash
 
     $ systemd-analyze critical-chain
 
-    multi-user.target @7.396s
-    └─ssh.service @6.851s +542ms
-    └─network.target @6.819s
-        └─NetworkManager.service @4.800s +2.016s
-        └─dbus.service @3.338s +1.439s
-            └─basic.target @3.270s
-            └─sockets.target @3.269s
-                └─dbus.socket @3.269s
-                └─sysinit.target @3.190s
-                    └─systemd-backlight@backlight:10-0045.service @5.446s +172ms
-                    └─system-systemd\x2dbacklight.slice @5.438s
-                        └─system.slice @1.503s
-                        └─-.slice @1.502s
+    multi-user.target @7.497s
+    └─ssh.service @6.441s +1.053s
+    └─network.target @6.398s
+        └─NetworkManager.service @4.572s +1.822s
+        └─dbus.service @3.173s +1.351s
+            └─basic.target @3.157s
+            └─sockets.target @3.157s
+                └─dbus.socket @3.156s
+                └─sysinit.target @3.091s
+                    └─systemd-backlight@backlight:10-0045.service @7.347s +102ms
+                    └─system-systemd\x2dbacklight.slice @7.338s
+                        └─system.slice @1.467s
+                        └─-.slice @1.467s
 
 .. code-block:: bash
 
     $ systemd-analyze critical-chain obd-dashboard.service
 
-    obd-dashboard.service @2.578s
-    └─systemd-udevd.service @2.263s +307ms
-    └─systemd-tmpfiles-setup-dev.service @1.978s +256ms
-        └─systemd-sysusers.service @1.782s +192ms
-        └─systemd-remount-fs.service @1.620s +151ms
-            └─systemd-journald.socket @1.520s
-            └─system.slice @1.503s
-                └─-.slice @1.502s
+    obd-dashboard.service @2.368s
+    └─systemd-udevd.service @2.022s +338ms
+    └─systemd-tmpfiles-setup-dev.service @1.915s +77ms
+        └─systemd-sysusers.service @1.744s +165ms
+        └─systemd-remount-fs.service @1.582s +149ms
+            └─systemd-journald.socket @1.485s
+            └─-.mount @1.467s
+                └─-.slice @1.467s
 
 
 Related
