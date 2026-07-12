@@ -17,7 +17,7 @@ class StorageUpdater():
             for key in keys_to_remove:
                 cp_storage.pop(key)
             self.storage.update(cp_storage)
-    
+
     def update_single(self, key: Command, value: Any) -> None:
         with self.storage_lock:
             self.storage[key] = value
@@ -25,7 +25,7 @@ class StorageUpdater():
     def copy(self) -> STORAGE_SIGNATURE:
         with self.storage_lock:
             return self.storage.copy()
-    
+
     def clear_all(self, value: Any = None) -> None:
         with self.storage_lock:
             for key in self.storage.keys():

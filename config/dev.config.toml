@@ -11,3 +11,4 @@ level = "DEBUG"
 [environ]
 SDL_VIDEODRIVER = ""
 SDL_KMSDRM_DEVICE = ""
+SDL_AUDIODRIVER = ""

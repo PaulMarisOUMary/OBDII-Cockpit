@@ -2,8 +2,8 @@ from datetime import datetime
 from math import isclose
 from typing import Optional, Tuple
 
-from pygame import Surface, surfarray
-from numpy import multiply
+from pygame import Surface, BLEND_MULT
+
 
 class BlueFilter:
     def __init__(self, max_strength: float = 0.5, fade_speed: float = 0.05):
@@ -13,6 +13,8 @@ class BlueFilter:
         self.current_strength = 0.0
         self._last_strength = -1.0
         self._channel_scales: Optional[Tuple[float, float, float]] = None
+
+        self._overlay: Optional[Surface] = None
 
     def apply(self, screen: Surface, target_strength: Optional[float] = None, virtual_hour: Optional[float] = None) -> None:
         target_strength = target_strength or self.strength_by_time(virtual_hour)
@@ -36,12 +38,16 @@ class BlueFilter:
             return
 
         red_scale, green_scale, blue_scale = factors
-        arr = surfarray.pixels3d(screen)
-        multiply(arr[..., 0], red_scale, out=arr[..., 0], casting="unsafe")
-        multiply(arr[..., 1], green_scale, out=arr[..., 1], casting="unsafe")
-        multiply(arr[..., 2], blue_scale, out=arr[..., 2], casting="unsafe")
 
-        del arr
+        if self._overlay is None or self._overlay.get_size() != screen.get_size():
+            self._overlay = Surface(screen.get_size()).convert()
+
+        self._overlay.fill((
+            int(255 * red_scale),
+            int(255 * green_scale),
+            int(255 * blue_scale),
+        ))
+        screen.blit(self._overlay, (0, 0), special_flags=BLEND_MULT)
 
     def strength_by_time(self, virtual_hour: Optional[float] = None) -> float:
         now = datetime.now()

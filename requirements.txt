@@ -1,5 +1,3 @@
-numpy>=2,<3
-
 py-obdii
 
 tomli>=2,<3;python_version<"3.11"

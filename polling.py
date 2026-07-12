@@ -16,13 +16,11 @@ def lcm_list(numbers: List[int]) -> int:
 class PollingManager:
     def __init__(self) -> None:
         self.command_list: Dict[Command, int] = {}
-
         self.cycle_count = 0
         self._wrap_at = 1
 
     def register(self, command: Command, frequency: int) -> None:
         self.command_list[command] = frequency
-
         self._wrap_at = lcm_list(list(self.command_list.values()))
 
     def get_cycle(self) -> List[Command]:
@@ -31,9 +29,7 @@ class PollingManager:
             for cmd, freq in self.command_list.items()
             if self.cycle_count % freq == 0
         ]
-
         self.cycle_count += 1
         if self.cycle_count >= self._wrap_at:
             self.cycle_count = 0
-
         return result

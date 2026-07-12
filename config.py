@@ -10,8 +10,6 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib
 
-from obdii import Command, commands
-
 
 CONFIG_DIR = Path(__file__).parent / "config"
 SYSTEM = system()
@@ -53,7 +51,7 @@ for _key, _value in config.get("environ", {}).items():
 _display = config.get("display", {})
 _connection = config.get("connection", {})
 _logging = config.get("logging", {})
-_commands = config.get("commands", {})
+_commands_cfg = config.get("commands", {})
 
 
 WIDTH = _display.get("width", 1280)
@@ -62,21 +60,22 @@ FULLSCREEN_MODE = _display.get("fullscreen", True)
 ROTATED_BY_90 = _display.get("rotated_by_90", True)
 TARGET_FPS = _display.get("target_fps", 60)
 
-
 SERIAL_PORT = _connection.get("serial_port", "/dev/ttyUSB0")
-
 
 _level_str = _logging.get("level", "INFO").upper()
 LOG_LEVEL = getattr(logging, _level_str, logging.INFO)
 
-
 IS_DEV = _is_dev
 
 
-DEFAULT_COMMANDS: Dict[Command, int] = {}
-for _name, _freq in _commands.items():
-    try:
-        cmd = commands[1][_name]
-        DEFAULT_COMMANDS[cmd] = _freq
-    except KeyError:
-        raise ValueError(f"Unknown command in config: '{_name}'.")
+def get_default_commands() -> Dict[Any, int]:
+    from obdii import commands
+
+    default_commands: Dict[Any, int] = {}
+    for name, freq in _commands_cfg.items():
+        try:
+            cmd = commands[1][name]
+            default_commands[cmd] = freq
+        except KeyError:
+            raise ValueError(f"Unknown command in config: '{name}'.")
+    return default_commands

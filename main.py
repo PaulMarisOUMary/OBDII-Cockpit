@@ -1,37 +1,46 @@
-from config import DEFAULT_COMMANDS, FULLSCREEN_MODE, HEIGHT, LOG_LEVEL, ROTATED_BY_90, SERIAL_PORT, TARGET_FPS, WIDTH
+import config
 
-from blue_filter import BlueFilter
-from connection import ConnectionManager
-from logs import setup_logging
-from storage import StorageUpdater
-
-from pygame import MOUSEBUTTONDOWN, Surface, display, font, init, mouse, quit, time, transform, FULLSCREEN, QUIT
-from pygame.event import get
-
-from obdii import Connection, at_commands
-
-_logger = setup_logging(level=LOG_LEVEL)
+from pygame import (
+    display,
+    font,
+    mouse,
+    time as pg_time,
+    transform,
+    Surface,
+    FULLSCREEN,
+    MOUSEBUTTONDOWN,
+    QUIT,
+)
+from pygame.event import get as get_events
 
 def main() -> None:
-    _logger.info("Dashboard starting up.")
-    init()
-    _logger.info("Pygame initialized.")
+    display.init()
     font.init()
     mouse.set_visible(False)
-    display.set_caption("OBDII Dashboard")
 
     screen = display.set_mode(
-        (WIDTH, HEIGHT),
-        FULLSCREEN if FULLSCREEN_MODE else 0
+        (config.WIDTH, config.HEIGHT),
+        FULLSCREEN if config.FULLSCREEN_MODE else 0
     )
-    off_screen = Surface((WIDTH, HEIGHT))
+    off_screen = Surface((config.WIDTH, config.HEIGHT))
 
+    screen.fill((0, 0, 0))
+    display.flip()
+
+    from logs import setup_logging
+    logger = setup_logging(level=config.LOG_LEVEL)
+    logger.info("Dashboard starting up.")
+
+    from blue_filter import BlueFilter
     blue_filter = BlueFilter(0.5)
 
-    clock = time.Clock()
+    clock = pg_time.Clock()
+
+    from obdii import Connection, at_commands
+    default_commands = config.get_default_commands()
 
     conn = Connection(
-        SERIAL_PORT,
+        config.SERIAL_PORT,
         auto_connect=False,
         early_return=True,
 
@@ -47,23 +56,23 @@ def main() -> None:
         ]
     )
 
-    storage_updater = StorageUpdater(dict.fromkeys(DEFAULT_COMMANDS, None))
-    conn_manager = ConnectionManager(conn, storage_updater, _logger)
+    from storage import StorageUpdater
+    from connection import ConnectionManager
 
-    # Dodge font not initialized error
+    storage_updater = StorageUpdater(dict.fromkeys(default_commands, None))
+    conn_manager = ConnectionManager(conn, storage_updater, logger, default_commands)
+
     from rendering import Dashboard
-
     dashboard = Dashboard()
-    _logger.info("Dashboard initialized.")
+    logger.info("Dashboard initialized.")
 
-    needs_rotation = ROTATED_BY_90
-    first_frame = True
+    needs_rotation = config.ROTATED_BY_90
 
     try:
         while True:
-            dt = clock.tick(TARGET_FPS)
+            dt = clock.tick(config.TARGET_FPS)
 
-            for event in get():
+            for event in get_events():
                 if event.type == QUIT:
                     raise KeyboardInterrupt
                 elif event.type == MOUSEBUTTONDOWN:
@@ -84,15 +93,11 @@ def main() -> None:
 
             display.flip()
 
-            if first_frame:
-                first_frame = False
-                _logger.info("First frame rendered.")
-
             # import pygame
             # pygame.image.save(screen, "dashboard.png")
             # break
     except KeyboardInterrupt:
-        _logger.info("Shutting down.")
+        logger.info("Shutting down.")
     finally:
         conn_manager.stop()
         conn_manager.connection.close()

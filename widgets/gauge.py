@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Sequence, Tuple
 
 from pygame import Surface
 
@@ -44,7 +44,7 @@ class Gauge:
     
     @staticmethod
     def gauge_ratio(
-        segments: List[Tuple[float, float]], 
+        segments: Sequence[Tuple[float, float]], 
         segment_pixels: List[int],
         scale: float = 1.0,
         value: float = 0,

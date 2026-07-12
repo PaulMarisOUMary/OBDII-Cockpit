@@ -1,11 +1,11 @@
 from logging import Logger
 from threading import Event, Thread
+from typing import Dict
 from time import monotonic
 
-from obdii import Connection
+from obdii import Command, Connection
 from obdii.errors import ResponseBaseError
 
-from config import DEFAULT_COMMANDS
 from polling import PollingManager
 from storage import StorageUpdater
 
@@ -13,7 +13,7 @@ from storage import StorageUpdater
 class ConnectionManager:
     RECONNECT_DELAY = 5.0
 
-    def __init__(self, connection: Connection, storage_updater: StorageUpdater, logger: Logger):
+    def __init__(self, connection: Connection, storage_updater: StorageUpdater, logger: Logger, default_commands: Dict[Command, int]) -> None:
         self.connection = connection
         self.storage_updater = storage_updater
         self.logger = logger
@@ -28,7 +28,7 @@ class ConnectionManager:
         self.fetch_thread = None
 
         self.polling_manager = PollingManager()
-        for key, value in DEFAULT_COMMANDS.items():
+        for key, value in default_commands.items():
             self.polling_manager.register(key, value)
 
     def start(self) -> None:
@@ -58,7 +58,7 @@ class ConnectionManager:
     def reconnect(self) -> None:
         if not self._is_startup:
             self.logger.warning("Attempting to reconnect")
-        
+
         self.stop()
         self.connection.close()
 
@@ -68,13 +68,12 @@ class ConnectionManager:
         except ConnectionError:
             self.logger.warning("Connection failed")
             return
-        
+
         self.polling_stop.clear()
         self.polling_error.clear()
         self.start()
 
     def background_fetch(self) -> None:
-        # _cache = {}
         while self._running and not self.polling_stop.is_set():
             to_fetch = self.polling_manager.get_cycle()
             for command in to_fetch:
@@ -82,7 +81,6 @@ class ConnectionManager:
                     response = self.connection.query(command)
                     value = response.value
                     if value is not None:
-                        # _cache[command] = value
                         self.storage_updater.update_single(command, value)
                     else:
                         self.logger.warning(f"No data for command: {command}; value: {value}")
