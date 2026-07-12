@@ -1,32 +1,22 @@
 from functools import partial
-from pathlib import Path
 
 from obdii import commands
 from pygame import Surface
-from pygame.font import Font
 from pygame.transform import flip
 
+from assets import AssetManager
 from config import WIDTH, HEIGHT
 from storage import STORAGE_SIGNATURE
 from widgets.digit import Digit
 from widgets.gauge import Gauge
-from widgets.helper import load_scale_image, render_text, safe_int
-
-
-ASSETS_DIR = Path(__file__).parent / "assets" / "img"
-FONTS_DIR = Path(__file__).parent / "fonts"
+from widgets.helper import render_text, safe_int
 
 
 class Dashboard:
     IMG_PATHS = {
-        "dashboard": ASSETS_DIR / "dashboard.png",
-        "left_bar": ASSETS_DIR / "left_bar.png",
-        "left_group_bar": ASSETS_DIR / "left_group_bar.png",
-    }
-
-    FONT_PATHS = {
-        "big": FONTS_DIR / "Sarpanch-SemiBold.ttf",
-        "small": FONTS_DIR / "Sarpanch-Regular.ttf",
+        "dashboard":  "dashboard.png",
+        "left_bar":  "left_bar.png",
+        "left_group_bar":  "left_group_bar.png",
     }
 
     SIZES = {
@@ -51,16 +41,19 @@ class Dashboard:
     MAX_COOLANT = 150
     MAX_OIL = 300
 
-    def __init__(self):
+    def __init__(
+        self,
+        assets: AssetManager,
+        ):
         color_white = (255, 255, 255)
 
-        self.big_font = Font(self.FONT_PATHS["big"], 80)
-        self.small_font = Font(self.FONT_PATHS["small"], 20)
+        self.big_font = assets.font("Sarpanch-SemiBold.ttf", 80)
+        self.small_font = assets.font("Sarpanch-Regular.ttf", 20)
 
-        self.dashboard = load_scale_image(self.IMG_PATHS["dashboard"], self.SIZES["dashboard"])
-        self.left_bar = load_scale_image(self.IMG_PATHS["left_bar"], self.SIZES["left_bar"])
+        self.dashboard = assets.image("dashboard.png", self.SIZES["dashboard"], alpha=False)
+        self.left_bar = assets.image("left_bar.png", self.SIZES["left_bar"])
         self.right_bar = flip(self.left_bar.copy(), True, False)
-        self.left_group_bar = load_scale_image(self.IMG_PATHS["left_group_bar"], self.SIZES["left_group"])
+        self.left_group_bar = assets.image("left_group_bar.png", self.SIZES["left_group"])
         self.right_group_bar = flip(self.left_group_bar.copy(), True, False)
 
         self.label_kmh = render_text(self.small_font, "km/h", color_white)
@@ -71,13 +64,14 @@ class Dashboard:
         self._bg_cache.blit(self.label_kmh, self.KMH_POS)
         self._bg_cache.blit(self.label_rpm, self.RPM_TEXT_POS)
 
-        self.speed_gauge = Gauge(self.left_bar, self.LEFT_BAR_POS, self.MAX_SPEED)
         rpm_ratio_fn = partial(
             Gauge.gauge_ratio,
             [(0, 0.5), (0.5, 1), (1, 1.5), (1.5, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7)],
             [35, 39, 39, 40, 40, 38, 38, 38, 18],
             0.001,
         )
+
+        self.speed_gauge = Gauge(self.left_bar, self.LEFT_BAR_POS, self.MAX_SPEED)
         self.rpm_gauge = Gauge(self.right_bar, self.RIGHT_BAR_POS, self.MAX_RPM, ratio_fn=rpm_ratio_fn)
 
         self.oil_gauge = Gauge(self.left_group_bar, self.LEFT_GROUP_BAR_POS, self.MAX_OIL)

@@ -17,6 +17,7 @@ def main() -> None:
     display.init()
     font.init()
     mouse.set_visible(False)
+    display.set_icon(Surface((1, 1)))
 
     screen = display.set_mode(
         (config.WIDTH, config.HEIGHT),
@@ -24,7 +25,22 @@ def main() -> None:
     )
     off_screen = Surface((config.WIDTH, config.HEIGHT))
 
-    screen.fill((0, 0, 0))
+    needs_rotation = config.ROTATED_BY_90
+
+    from pathlib import Path
+    from assets import AssetManager
+    assets = AssetManager(
+        Path(__file__).parent / "assets" / "img",
+        Path(__file__).parent / "fonts"
+    )
+    splash_background = assets.image(
+        "dashboard.png", (config.WIDTH, config.HEIGHT), alpha=False
+    )
+
+    if needs_rotation:
+        screen.blit(transform.rotate(splash_background, 90), (0, 0))
+    else:
+        screen.blit(splash_background, (0, 0))
     display.flip()
 
     from logs import setup_logging
@@ -63,10 +79,8 @@ def main() -> None:
     conn_manager = ConnectionManager(conn, storage_updater, logger, default_commands)
 
     from rendering import Dashboard
-    dashboard = Dashboard()
+    dashboard = Dashboard(assets)
     logger.info("Dashboard initialized.")
-
-    needs_rotation = config.ROTATED_BY_90
 
     try:
         while True:
