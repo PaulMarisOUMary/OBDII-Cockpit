@@ -4,8 +4,9 @@ from pygame import Surface
 
 
 class Gauge:
-    def __init__(self, 
-        image: Surface, 
+    def __init__(
+        self,
+        image: Surface,
         position: Tuple[int, int],
         max_value: int,
         ratio_fn: Optional[Callable[[int], float]] = None,
@@ -26,7 +27,10 @@ class Gauge:
         value = max(0, min(value, self.max_value))
 
         if self._prev_value == value and self._prev_surface is not None:
-            screen.blit(self._prev_surface, (self.position[0], self.position[1] + self.height - self._prev_surface.get_height()))
+            screen.blit(
+                self._prev_surface,
+                (self.position[0], self.position[1] + self.height - self._prev_surface.get_height()),
+            )
             return
 
         ratio = self.ratio_fn(value)

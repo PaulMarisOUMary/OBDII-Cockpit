@@ -7,7 +7,8 @@ from pygame.font import Font
 class Digit:
     _digit_cache: Dict[Tuple[Font, Tuple[int, int, int]], Tuple[Surface, ...]] = {}
 
-    def __init__(self,
+    def __init__(
+        self,
         font: Font,
         position: Tuple[int, int],
         n_digits: int = 3,
@@ -34,7 +35,7 @@ class Digit:
         pos_x = self.position[0]
         pos_y = self.position[1]
         width_step = self._max_width + self.spacing
-        
+
         for i in range(len(text)):
             surf = self._cache[ord(text[i]) - self._ordzero]
             x = pos_x + i * width_step + (self._max_width - surf.get_width())

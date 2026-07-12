@@ -1,4 +1,5 @@
 from functools import partial
+from pathlib import Path
 
 from obdii import commands
 from pygame import Surface
@@ -12,16 +13,20 @@ from widgets.gauge import Gauge
 from widgets.helper import load_scale_image, render_text, safe_int
 
 
+ASSETS_DIR = Path(__file__).parent / "assets" / "img"
+FONTS_DIR = Path(__file__).parent / "fonts"
+
+
 class Dashboard:
     IMG_PATHS = {
-        "dashboard": "./assets/img/dashboard.png",
-        "left_bar": "./assets/img/left_bar.png",
-        "left_group_bar": "./assets/img/left_group_bar.png",
+        "dashboard": ASSETS_DIR / "dashboard.png",
+        "left_bar": ASSETS_DIR / "left_bar.png",
+        "left_group_bar": ASSETS_DIR / "left_group_bar.png",
     }
 
     FONT_PATHS = {
-        "big": "./fonts/Sarpanch-SemiBold.ttf",
-        "small": "./fonts/Sarpanch-Regular.ttf",
+        "big": FONTS_DIR / "Sarpanch-SemiBold.ttf",
+        "small": FONTS_DIR / "Sarpanch-Regular.ttf",
     }
 
     SIZES = {
