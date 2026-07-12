@@ -123,7 +123,7 @@ Edit `sudo nano /boot/firmware/cmdline.txt` (all on one line):
 
 .. code-block:: text
 
-    video=DSI-1:400x1280e,rotate=90 console=tty1 cfg80211.ieee80211_regdom=FR root=PARTUUID=8adb8d1c-02 rootfstype=ext4 rcupdate.rcu_expedited=1 fsck.repair=yes initial_turbo=25 rootwait splash plymouth.ignore-serial-consoles quiet loglevel=3 systemd.show_status=0 vt.global_cursor_default=0 mitigations=off panic=5 systemd.crash_reboot=1
+    video=DSI-1:400x1280e,rotate=90 video=HDMI-A-1:d console=tty1 cfg80211.ieee80211_regdom=FR root=PARTUUID=8adb8d1c-02 rootfstype=ext4 rcupdate.rcu_expedited=1 fsck.repair=yes initial_turbo=25 rootwait splash plymouth.ignore-serial-consoles quiet loglevel=3 systemd.show_status=0 vt.global_cursor_default=0 mitigations=off panic=5 systemd.crash_reboot=1
 
 - Keep your own `root=PARTUUID=8adb8d1c-02`
 - Same thing for `cfg80211.ieee80211_regdom=FR`
@@ -209,79 +209,87 @@ See what services take time to start:
 
 .. code-block:: bash
 
-    sudo systemctl disable NetworkManager-wait-online.service
+    sudo systemctl mask \
+    e2scrub_reap.service e2scrub_all.timer \
+    fstrim.timer \
 
-    sudo systemctl disable bluetooth.service
-    sudo systemctl disable hciuart.service
+    NetworkManager-wait-online.service \
+    sshswitch.service \
 
-    sudo systemctl disable alsa-restore.service
+    bluetooth.service \
+    hciuart.service \
+    ModemManager.service \
+    avahi-daemon.service avahi-daemon.socket \
+    rpc-statd-notify.service \
 
-    sudo systemctl disable ModemManager.service
+    alsa-restore.service \
 
-    sudo systemctl disable rpi-eeprom-update.service
-    sudo systemctl disable apt-daily.timer apt-daily-upgrade.timer
+    console-setup.service \
+    keyboard-setup.service \
+    triggerhappy.socket triggerhappy.service \
 
-    sudo systemctl disable man-db.timer
-    sudo systemctl disable sshswitch.service
-    sudo systemctl disable avahi-daemon.service avahi-daemon.socket
+    rpi-eeprom-update.service \
+    apt-daily.timer apt-daily-upgrade.timer \
+    man-db.timer \
 
-    sudo systemctl disable fstrim.timer
-
-    sudo systemctl disable console-setup.service
-    sudo systemctl disable keyboard-setup.service
-
-    sudo systemctl disable triggerhappy.socket triggerhappy.service
-
-    sudo systemctl disable rpc-statd-notify.service
+    dphys-swapfile.service
 
 Optimization Results
 ^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: text
+
     Model: Raspberry Pi 3 Model B Rev 1.2
     CPU: 4
     RAM: 927 MB
     Storage: 59500 MB
 
-Optimization results:
+.. raw:: html
 
-.. code-block:: bash
+    <details>
+    <summary><b>See outputs</b></summary>
+
+.. code-block:: text
 
     $ systemd-analyze time
 
-    Startup finished in 5.788s (kernel) + 7.723s (userspace) = 13.512s
-    multi-user.target reached after 7.497s in userspace.
+    Startup finished in 6.196s (kernel) + 6.823s (userspace) = 13.020s
+    multi-user.target reached after 6.762s in userspace.
 
-.. code-block:: bash
+.. code-block:: text
 
     $ systemd-analyze critical-chain
 
-    multi-user.target @7.497s
-    └─ssh.service @6.441s +1.053s
-    └─network.target @6.398s
-        └─NetworkManager.service @4.572s +1.822s
-        └─dbus.service @3.173s +1.351s
-            └─basic.target @3.157s
-            └─sockets.target @3.157s
-                └─dbus.socket @3.156s
-                └─sysinit.target @3.091s
-                    └─systemd-backlight@backlight:10-0045.service @7.347s +102ms
-                    └─system-systemd\x2dbacklight.slice @7.338s
-                        └─system.slice @1.467s
-                        └─-.slice @1.467s
+    multi-user.target @6.762s
+    └─ssh.service @6.178s +582ms
+        └─network.target @6.151s
+            └─NetworkManager.service @3.884s +2.264s
+                └─dbus.service @2.657s +1.194s
+                    └─basic.target @2.652s
+                        └─sockets.target @2.651s
+                            └─dbus.socket @2.650s
+                                └─sysinit.target @2.602s
+                                    └─systemd-backlight@backlight:10-0045.service @5.178s +109ms
+                                        └─system-systemd\x2dbacklight.slice @5.162s
+                                            └─system.slice @1.353s
+                                                └─-.slice @1.353s
 
-.. code-block:: bash
+.. code-block:: text
 
     $ systemd-analyze critical-chain obd-dashboard.service
 
-    obd-dashboard.service @2.368s
-    └─systemd-udevd.service @2.022s +338ms
-    └─systemd-tmpfiles-setup-dev.service @1.915s +77ms
-        └─systemd-sysusers.service @1.744s +165ms
-        └─systemd-remount-fs.service @1.582s +149ms
-            └─systemd-journald.socket @1.485s
-            └─-.mount @1.467s
-                └─-.slice @1.467s
+    obd-dashboard.service @2.384s
+    └─systemd-udevd.service @1.865s +504ms
+        └─systemd-tmpfiles-setup-dev.service @1.754s +88ms
+            └─systemd-sysusers.service @1.577s +171ms
+                └─systemd-remount-fs.service @1.471s +94ms
+                    └─systemd-journald.socket @1.370s
+                        └─system.slice @1.353s
+                            └─-.slice @1.353s
+
+.. raw:: html
+
+    </details>
 
 
 Related

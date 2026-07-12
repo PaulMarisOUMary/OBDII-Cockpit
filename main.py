@@ -1,11 +1,8 @@
-from datetime import datetime
-from logging import getLogger, Formatter
-from logging.handlers import RotatingFileHandler
-
 from config import DEFAULT_COMMANDS, FULLSCREEN_MODE, HEIGHT, LOG_LEVEL, ROTATED_BY_90, SERIAL_PORT, TARGET_FPS, WIDTH
 
 from blue_filter import BlueFilter
 from connection import ConnectionManager
+from logs import setup_logging
 from storage import StorageUpdater
 
 from pygame import MOUSEBUTTONDOWN, Surface, display, font, init, mouse, quit, time, transform, FULLSCREEN, QUIT
@@ -13,8 +10,12 @@ from pygame.event import get
 
 from obdii import Connection, at_commands
 
+_logger = setup_logging(level=LOG_LEVEL)
+
 def main() -> None:
+    _logger.info("Dashboard starting up.")
     init()
+    _logger.info("Pygame initialized.")
     font.init()
     mouse.set_visible(False)
     display.set_caption("OBDII Dashboard")
@@ -29,27 +30,12 @@ def main() -> None:
 
     clock = time.Clock()
 
-    filename = datetime.now().strftime("obd_%m-%d-%y.log")
-    file_handler = RotatingFileHandler(
-        filename=filename,
-        maxBytes=32*1024*1024,
-        backupCount=15,
-    )
-    formatter = Formatter(
-        fmt="{asctime} {levelname:<5} {name}: {message}",
-        datefmt="%m-%d-%y %H:%M:%S",
-        style='{'
-    )
-    _logger = getLogger("obdii")
-
     conn = Connection(
         SERIAL_PORT,
         auto_connect=False,
         early_return=True,
 
-        log_handler=file_handler,
-        log_formatter=formatter,
-        log_level=LOG_LEVEL,
+        log_handler=None,
 
         timeout=1.0,
         write_timeout=1.0,
@@ -68,8 +54,10 @@ def main() -> None:
     from rendering import Dashboard
 
     dashboard = Dashboard()
+    _logger.info("Dashboard initialized.")
 
     needs_rotation = ROTATED_BY_90
+    first_frame = True
 
     try:
         while True:
@@ -95,6 +83,10 @@ def main() -> None:
             blue_filter.apply(screen)
 
             display.flip()
+
+            if first_frame:
+                first_frame = False
+                _logger.info("First frame rendered.")
 
             # import pygame
             # pygame.image.save(screen, "dashboard.png")
