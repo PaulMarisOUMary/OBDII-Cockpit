@@ -2,7 +2,7 @@ from datetime import datetime
 from math import isclose
 from typing import Optional, Tuple
 
-from pygame import Surface, BLEND_MULT
+from pygame import BLEND_MULT, Surface
 
 
 class BlueFilter:

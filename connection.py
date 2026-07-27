@@ -1,7 +1,7 @@
 from logging import Logger
 from threading import Event, Thread
-from typing import Dict
 from time import monotonic
+from typing import Dict
 
 from obdii import Command, Connection
 from obdii.errors import ResponseBaseError
@@ -89,9 +89,9 @@ class ConnectionManager:
                     self.logger.warning(f"Unknown command: {command}")
 
                 except ResponseBaseError as e:
-                    self.logger.warning(f"ResponseError {str(e)}")
+                    self.logger.warning(f"ResponseError {e!s}")
                 except Exception as e:
-                    self.logger.critical(f"CriticalError {str(e)}")
+                    self.logger.critical(f"CriticalError {e!s}")
                     self.storage_updater.clear_all()
 
                     self.polling_error.set()

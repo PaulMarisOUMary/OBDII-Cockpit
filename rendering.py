@@ -5,7 +5,7 @@ from pygame import Surface
 from pygame.transform import flip
 
 from assets import AssetManager
-from config import WIDTH, HEIGHT
+from config import HEIGHT, WIDTH
 from storage import STORAGE_SIGNATURE
 from widgets.digit import Digit
 from widgets.gauge import Gauge

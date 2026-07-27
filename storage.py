@@ -1,12 +1,11 @@
-from typing import Any, Dict
-
 from threading import Lock
+from typing import Any, Dict
 
 from obdii import Command
 
 STORAGE_SIGNATURE = Dict[Command, Any]
 
-class StorageUpdater():
+class StorageUpdater:
     def __init__(self, storage: STORAGE_SIGNATURE):
         self.storage_lock = Lock()
         self.storage = storage
@@ -28,5 +27,5 @@ class StorageUpdater():
 
     def clear_all(self, value: Any = None) -> None:
         with self.storage_lock:
-            for key in self.storage.keys():
+            for key in self.storage:
                 self.storage[key] = value

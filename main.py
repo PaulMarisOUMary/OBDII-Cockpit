@@ -1,17 +1,20 @@
-import config
-
 from pygame import (
-    display,
-    font,
-    mouse,
-    time as pg_time,
-    transform,
-    Surface,
     FULLSCREEN,
     MOUSEBUTTONDOWN,
     QUIT,
+    Surface,
+    display,
+    font,
+    mouse,
+    transform,
+)
+from pygame import (
+    time as pg_time,
 )
 from pygame.event import get as get_events
+
+import config
+
 
 def main() -> None:
     display.init()
@@ -28,6 +31,7 @@ def main() -> None:
     needs_rotation = config.ROTATED_BY_90
 
     from pathlib import Path
+
     from assets import AssetManager
     assets = AssetManager(
         Path(__file__).parent / "assets" / "img",
@@ -72,8 +76,8 @@ def main() -> None:
         ]
     )
 
-    from storage import StorageUpdater
     from connection import ConnectionManager
+    from storage import StorageUpdater
 
     storage_updater = StorageUpdater(dict.fromkeys(default_commands, None))
     conn_manager = ConnectionManager(conn, storage_updater, logger, default_commands)
@@ -113,9 +117,10 @@ def main() -> None:
     except KeyboardInterrupt:
         logger.info("Shutting down.")
     finally:
+        from sys import exit
         conn_manager.stop()
         conn_manager.connection.close()
-        quit()
+        exit()
 
 
 if __name__ == "__main__":

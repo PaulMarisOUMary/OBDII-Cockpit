@@ -1,9 +1,8 @@
 import logging
-
 from os import environ
 from pathlib import Path
 from platform import system
-from typing import Dict, Any
+from typing import Any, Dict
 
 try:
     import tomllib

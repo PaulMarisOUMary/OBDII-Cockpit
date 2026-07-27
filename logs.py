@@ -1,5 +1,5 @@
 from datetime import datetime
-from logging import getLogger, Formatter, Logger, StreamHandler, INFO
+from logging import INFO, Formatter, Logger, StreamHandler, getLogger
 from logging.handlers import RotatingFileHandler
 
 
