@@ -10,6 +10,7 @@ from storage import STORAGE_SIGNATURE
 from widgets.digit import Digit
 from widgets.gauge import Gauge
 from widgets.helper import render_text, safe_int
+from widgets.interpolation import ValueInterpolator
 
 
 class Dashboard:
@@ -81,13 +82,18 @@ class Dashboard:
         self.speed_digit = Digit(self.big_font, self.SPEED_POS, 3, color_white, -5)
         self.rpm_digit = Digit(self.big_font, self.RPM_POS, 4, color_white, -5)
 
+        self.speed_interp = ValueInterpolator()
+        self.rpm_interp = ValueInterpolator()
+
     def draw(self, screen: Surface, storage: STORAGE_SIGNATURE, dt: float) -> None:
         """Render the dashboard."""
-        speed = safe_int(storage.get(commands["VEHICLE_SPEED"], 0))
-        rpm = safe_int(storage.get(commands["ENGINE_SPEED"], 0))
-        load = safe_int(storage.get(commands["ENGINE_LOAD"], 0))
-        coolant = safe_int(storage.get(commands["ENGINE_COOLANT_TEMP"], 0))
+        speed_raw = safe_int(storage.get(commands["VEHICLE_SPEED"], 0))
+        rpm_raw = safe_int(storage.get(commands["ENGINE_SPEED"], 0))
+        load_raw = safe_int(storage.get(commands["ENGINE_LOAD"], 0))
+        coolant_raw = safe_int(storage.get(commands["ENGINE_COOLANT_TEMP"], 0))
 
+        speed = safe_int(self.speed_interp.update(speed_raw))
+        rpm = safe_int(self.rpm_interp.update(rpm_raw))
         # oil = safe_int(storage.get("ENGINE_OIL_TEMP", 0))
         # in_press = safe_int(storage.get("INTAKE_PRESSURE", 0))
         # baro = safe_int(storage.get("BAROMETRIC_PRESSURE", 0))
@@ -99,8 +105,8 @@ class Dashboard:
         screen.blit(self._bg_cache, (0, 0))
 
         # self.oil_gauge.draw(screen, oil)
-        self.coolant_gauge.draw(screen, coolant)
-        self.load_gauge.draw(screen, load)
+        self.coolant_gauge.draw(screen, coolant_raw)
+        self.load_gauge.draw(screen, load_raw)
         self.speed_gauge.draw(screen, speed)
         self.rpm_gauge.draw(screen, rpm)
 
