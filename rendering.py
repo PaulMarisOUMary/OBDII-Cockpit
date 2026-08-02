@@ -14,12 +14,6 @@ from widgets.interpolation import ValueInterpolator
 
 
 class Dashboard:
-    IMG_PATHS = {
-        "dashboard":  "dashboard.png",
-        "left_bar":  "left_bar.png",
-        "left_group_bar":  "left_group_bar.png",
-    }
-
     SIZES = {
         "dashboard": (1280, 400),
         "left_bar": (130, 325),
@@ -84,6 +78,7 @@ class Dashboard:
 
         self.speed_interp = ValueInterpolator()
         self.rpm_interp = ValueInterpolator()
+        self.load_interp = ValueInterpolator()
 
     def draw(self, screen: Surface, storage: STORAGE_SIGNATURE, dt: float) -> None:
         """Render the dashboard."""
@@ -94,6 +89,7 @@ class Dashboard:
 
         speed = safe_int(self.speed_interp.update(speed_raw))
         rpm = safe_int(self.rpm_interp.update(rpm_raw))
+        load = safe_int(self.load_interp.update(load_raw))
         # oil = safe_int(storage.get("ENGINE_OIL_TEMP", 0))
         # in_press = safe_int(storage.get("INTAKE_PRESSURE", 0))
         # baro = safe_int(storage.get("BAROMETRIC_PRESSURE", 0))
@@ -106,7 +102,7 @@ class Dashboard:
 
         # self.oil_gauge.draw(screen, oil)
         self.coolant_gauge.draw(screen, coolant_raw)
-        self.load_gauge.draw(screen, load_raw)
+        self.load_gauge.draw(screen, load)
         self.speed_gauge.draw(screen, speed)
         self.rpm_gauge.draw(screen, rpm)
 
